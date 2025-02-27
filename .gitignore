@@ -1,0 +1,42 @@
+node_modules/
+# src/keys/*
+.pnp
+.pnp.js
+
+# testing
+coverage
+
+# build
+out/
+build/
+dist/
+
+# misc
+.vscode/
+.idea/
+.DS_Store
+# *.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+
+# secret keys
+.env
+.env.docker
+
+*storybook.log
+
+meili_data/
+typesense-data/
+/scripts/
+/tests/

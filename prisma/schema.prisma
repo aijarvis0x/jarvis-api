@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("BE_DATABASE_URL")
+}
+
+enum OnChainStatus {
+  pending
+  confirming
+  confirmed
+  reverted
+}
+
+enum BotState {
+  draft
+  pending
+  confirmed
+  waiting_generate
+  created
+}
+
+enum OrderState {
+  listed
+  cancelled
+  purchased
+}
+
+model Bot {
+  id                  BigInt      @id @default(autoincrement())
+  nftId               String?     @map("nft_id")
+  userId              BigInt      @map("user_id")
+  agentId             String      @map("agent_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid @unique
+  owner               String
+
+  avatar              String?
+  background          String?
+  name                String?
+  nsfw                Boolean?
+  tag                 String?
+  subTag              String?     @map("sub_tag")
+  description         String?
+  settingMode         Json?       @map("setting_mode")
+
+  state               BotState
+  isPublished         Boolean     @default(false) @map("is_published")
+  isPromptPublished   Boolean     @default(false) @map("is_prompt_published")
+  categoryIds         Json?       @map("category_ids")
+
+  lastestPrice        BigInt?     @map("lastest_price")
+  highestPrice        BigInt?     @map("highest_price")
+  lowestPrice         BigInt?     @map("lowest_price")
+  countConversation   BigInt?     @map("count_conversation")
+
+  msg                 String?
+  signature           String?
+  nonce               BigInt?
+  fee                 BigInt?
+  expiredTime         DateTime?   @map("expired_time")
+  txHash              String?     @map("tx_hash") @db.VarChar(66)
+
+  website             String?
+  telegram            String?
+  discord             String?
+  x                   String?
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @default(now()) @map("updated_at")
+  lastestAct          DateTime    @default(now()) @map("lastest_act")
+
+
+  Orders              Order[]     @relation("BotOrders")  // Added Relation
+  favoritedByUsers    FavoriteBot[] @relation("BotFavoriteBot")
+
+  @@index([nftId])
+  @@index([agentId])
+  @@index([userId])
+  @@index([name])
+  @@map("bots")
+}
+
+
+model User {
+  id                  BigInt      @id @default(autoincrement())
+  name                String      @unique
+  address             String      @unique
+  avatar              String?
+  description         String?
+
+  telegram            String?
+  discord             String?
+  whatsapp            String?
+  x                   String?
+  follower            BigInt      @default(0)
+  following           BigInt      @default(0)
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @default(now()) @map("updated_at")
+
+
+  OrdersAsBuyer       Order[]     @relation("BuyerRelation")
+  OrdersAsSeller      Order[]     @relation("SellerRelation")
+  favoriteBots        FavoriteBot[] @relation("UserFavoriteBot")
+
+  @@index([address])
+  @@index([name])
+  @@map("users")
+}
+
+model Conversation {
+  id                  BigInt      @id @default(autoincrement())
+  botId               BigInt      @map("bot_id")
+  agentId             String      @map("agent_id")
+  userId              BigInt      @map("user_id")
+  conversationId      String      @map("conversation_id") @unique
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @default(now()) @map("updated_at")
+
+  @@map("conversations")
+}
+
+model Category {
+  id                  BigInt      @id @default(autoincrement())
+  title               String
+  value               String
+  icon                String
+  priority            BigInt      @default(0)
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @default(now()) @map("updated_at")
+
+  @@map("categories")
+}
+
+
+model Order {
+  id                  BigInt      @id @default(autoincrement())
+  txHash              String      @map("tx_hash")
+  txHashDelist        String?     @map("tx_hash_delist")
+  txHashPurchase      String?     @map("tx_hash_purchase")
+  sellerId            BigInt      @map("seller_id")
+  buyerId             BigInt?     @map("buyer_id")
+  sellerAddress       String      @map("seller_address")
+  buyerAddress        String?     @map("buyer_address")
+
+  tag                 String
+  subTag              String?     @map("sub_tag")
+
+  nftId               String      @map("nft_id")
+  kiosk               String      @map("kiosk")
+  price               BigInt      @map("price")
+  fee                 BigInt?
+  currency            String
+  state               OrderState
+
+  botId               BigInt     @map("bot_id")   // Foreign Key Added
+  Bot                 Bot        @relation("BotOrders", fields: [botId], references: [id])  // Relation
+
+  Buyer               User?       @relation("BuyerRelation", fields: [buyerId], references: [id])
+  Seller              User        @relation("SellerRelation", fields: [sellerId], references: [id])
+
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @default(now()) @map("updated_at")
+  soldAt              DateTime?   @map("sold_at")
+
+  @@index([sellerId])
+  @@index([buyerId])
+  @@index([sellerAddress])
+  @@index([buyerAddress])
+  @@index([botId])                 // Index for faster queries
+  @@unique([txHash])
+  @@map("orders")
+}
+
+model SuiTransaction {
+  id                  BigInt      @id @default(autoincrement())
+  status              OnChainStatus @default(pending)
+  txHash              String      @unique @map("tx_hash") @db.VarChar(66)
+  sender              String?     @db.VarChar(199)
+  recipient           String?     @db.VarChar(199)
+  value               BigInt?
+  moveCall            String?     @map("move_call") @db.VarChar(199)
+  event0              String?     @db.VarChar(199)
+  event1              String?     @db.VarChar(199)
+  events              Json?       @map("events")
+  logs                Json?       @map("logs")
+  confirmedAt         DateTime?   @map("confirmed_at")
+  createdAt           DateTime    @default(now()) @map("created_at")
+
+  @@index([status])
+  @@index([sender])
+  @@index([recipient])
+  @@index([txHash])
+  @@map("sui_transactions")
+}
+
+model FavoriteBot {
+  id         BigInt   @id @default(autoincrement())
+  userId     BigInt   @map("user_id")
+  botId      BigInt   @map("bot_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  User       User     @relation("UserFavoriteBot", fields: [userId], references: [id], onDelete: Cascade)
+
+  Bot        Bot      @relation("BotFavoriteBot", fields: [botId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@unique([userId, botId])
+
+  @@map("favorite_bot")
+}

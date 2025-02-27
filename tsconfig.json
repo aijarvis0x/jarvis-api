@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "exclude": ["node_modules"],
+  "include": ["src"]
+}
