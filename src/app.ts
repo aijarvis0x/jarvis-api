@@ -103,7 +103,8 @@ export const build = async (
   // });
 
   app.register(cors, {
-    origin: ["https://test.5son.ai", "https://app.5son.ai"],
+    origin: ["http://localhost:5173",
+      "http://127.0.0.1:5173",],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"]
