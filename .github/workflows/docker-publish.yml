@@ -8,8 +8,8 @@ on:
 
 env:
   IMAGE_CACHE_SOURCE: staging
-  IMAGE_REGISTRY: anhskohbo
-  IMAGE_NAME: 5son-be
+  IMAGE_REGISTRY: caotrunghieu192
+  IMAGE_NAME: jarvis-be
   IMAGE_TAG: ${{ github.ref == 'refs/heads/dev' && 'dev' || 'latest' }}
 
 jobs:
@@ -31,7 +31,7 @@ jobs:
       - name: Log into registry
         uses: docker/login-action@v3
         with:
-          username: anhskohbo
+          username: caotrunghieu192
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Build and push Docker image with Buildx
