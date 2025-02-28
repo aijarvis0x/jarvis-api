@@ -124,7 +124,7 @@ export default async (app: AppInstance) => {
     handler: async (request, reply) => {
       try {
         const { userId } = request;
-        const { id, name, nsfw, tag, sub_tag, description, setting_mode, categoryIds } = request.body;
+        const { id, name, nsfw, tag, sub_tag, description, setting_mode, categoryIds, introMsg, prompt } = request.body;
 
 
         const bot = await findBotById(id, userId);
@@ -189,10 +189,20 @@ export default async (app: AppInstance) => {
           updateData.description = description;
         }
 
+        if (introMsg !== undefined) {
+          updateData.intro_msg = introMsg;
+        }
+
+        if (prompt !== undefined) {
+          updateData.prompt = prompt;
+        }
+
         //@todo update condition
         if(categoryIds && categoryIds.length > 0){
           updateData.category_ids = categoryIds
         }
+
+
 
         const updatedBot = await updateBotById(id, updateData);
 

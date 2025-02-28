@@ -71,6 +71,8 @@ export const updateBotInfoSchema = z.object({
   tag: z.string().optional(),
   sub_tag: z.string().optional(),
   description: z.string().optional(),
+  introMsg: z.string().optional(),
+  prompt: z.string().optional(),
   setting_mode: BotSettingModeSchema.optional(),
 });
 

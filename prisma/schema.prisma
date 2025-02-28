@@ -36,6 +36,8 @@ model Bot {
   owner               String
 
   avatar              String?
+  introMsg            String?     @map("intro_msg")
+  prompt              String?    
   background          String?
   name                String?
   nsfw                Boolean?
