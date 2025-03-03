@@ -3,8 +3,8 @@ import { z } from "zod"
 
 export const loginSchema = z.object({
   address: z
-    .string()
-    .refine((v) => isValidSuiAddress(v), "Invalid sui address"),
+    .string(),
+    // .refine((v) => isValidSuiAddress(v), "Invalid sui address"),
   messageHash: z.string(),
   signature: z.string()
 })
