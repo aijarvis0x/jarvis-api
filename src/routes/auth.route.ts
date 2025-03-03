@@ -20,13 +20,13 @@ export default async (app: AppInstance) => {
             try {
 
                 //verify signature
-                const verified = await verifySignature(messageHash, signature, address)
+                // const verified = await verifySignature(messageHash, signature, address)
 
-                if(!verified) {
-                    return reply.status(401).send({
-                        message: "Signature incorrect",
-                    })
-                }
+                // if(!verified) {
+                //     return reply.status(401).send({
+                //         message: "Signature incorrect",
+                //     })
+                // }
 
                 //login -> gen token
                 let userData = await login(address)
