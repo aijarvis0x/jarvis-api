@@ -1,9 +1,9 @@
 import pg from "pg"
 import { db } from "../lib/pg.js"
-import type { ParsedSuiTransaction } from "../utils/sui-utils.js"
+import type { ParsedMonadTransaction } from "../utils/monad-utils.js"
 
 export async function logSuiTransactions(
-  txs: Partial<ParsedSuiTransaction>[],
+  txs: Partial<ParsedMonadTransaction>[],
   _pool: pg.Pool = db.pool
 ) {
   const query = `

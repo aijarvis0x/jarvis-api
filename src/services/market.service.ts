@@ -1,7 +1,7 @@
 import type { QueryConfig } from "pg"
 import { db } from "../lib/pg.js"
 import { BotState, Currency, OrderState } from "../constants.js"
-import { ParsedSuiTransaction, SuiItemDelistedEventStruct, SuiItemListedEventStruct, SuiItemPurchasedEventStruct } from "../utils/sui-utils.js"
+import { ParsedMonadTransaction, SuiItemDelistedEventStruct, SuiItemListedEventStruct, SuiItemPurchasedEventStruct } from "../utils/monad-utils.js"
 import dayjs from "dayjs"
 import { findBotByNftId, findBotDelistableByNftId, updateBotLastestActOnchain, updateBotOwner } from "./bot.service.js"
 import { buyOrder, cancelOrder, createOrder, CreateOrderParams, findOrderByIdKiosk, findOrderByTx, updateOrderState } from "./order.service.js"
@@ -12,7 +12,7 @@ import { multiConnectionTransaction } from "../lib/db/transaction.js"
 
 export const confirmItemListedMarket = async (
     events: SuiItemListedEventStruct[],
-    tx: ParsedSuiTransaction,
+    tx: ParsedMonadTransaction,
     logger: any
 ) => {
     try {
@@ -63,7 +63,7 @@ export const confirmItemListedMarket = async (
 }
 export const confirmItemDelistedMarket = async (
     events: SuiItemDelistedEventStruct[],
-    tx: ParsedSuiTransaction,
+    tx: ParsedMonadTransaction,
     logger: any
 ) => {
     try {
@@ -90,7 +90,7 @@ export const confirmItemDelistedMarket = async (
 
 export const confirmItemPurchasedMarket = async (
     events: SuiItemPurchasedEventStruct[],
-    tx: ParsedSuiTransaction,
+    tx: ParsedMonadTransaction,
     logger: any
 ) => {
     try {
@@ -100,8 +100,8 @@ export const confirmItemPurchasedMarket = async (
 
             // console.log("================================");
             // console.log(event);
-            
-            
+
+
 
             // Check if bot exists
             const bot = await findBotDelistableByNftId(String(event.id), tx.confirmedAt);

@@ -1,10 +1,11 @@
-import type { QueryConfig } from "pg"
+import type { PoolClient, QueryConfig } from "pg"
 import { db } from "../lib/pg.js"
 import { BotState } from "../constants.js"
-import { ParsedSuiTransaction, signGenerateBotMsg, SuiMintNftAiAgentEventStruct } from "../utils/sui-utils.js"
 import { AWS_REGION, AWS_SQS_CREATE_AI_AGENT, MINT_AI_FEE } from "../env.js"
 import dayjs from "dayjs"
 import { sendMessage } from "../lib/sqs.js"
+import { MintNftEvent } from "../utils/monad-utils.js"
+import { multiConnectionTransaction } from "../lib/db/transaction.js"
 
 const MINT_AI_REQ_EXP = 86400000
 
@@ -569,85 +570,52 @@ export const updateBotSign = async (botId: BotId, msg: string, signature: string
 };
 
 
-// draft -> pending -> confirmed -> waiting_generate -> created
-export const createBotDraft = async (userId: bigint, owner: string): Promise<BotInfo> => {
-  try {
 
-    //check exist draft
-    let botDraft = await findBotDraft(userId)
 
-    if (!botDraft) {
-      //create bot draft
-      botDraft = await insertBotDraft(userId, owner)
-    }
-
-    return botDraft
-
-  } catch (error) {
-    throw error
-  }
-}
-
-export const genSignMintBot = async (props: {
-  id: bigint,
-  receiver: string,
-  name: any,
-  xid: any,
-  description,
-}) => {
-  try {
-    let { msg, signature, nonce, expired_time, fee } = await signGenerateBotMsg({
-      id: props.id,
-      receiver: props.receiver,
-      xid: props.xid,
-      name: props.name,
-      description: props.description,
-      mint_fee: MINT_AI_FEE,
-      expire_timestamp: dayjs.utc(dayjs.utc().valueOf() + MINT_AI_REQ_EXP).valueOf(),
-    })
-
-    //update db
-    await updateBotSign(props.xid, msg, signature, nonce, expired_time, fee)
-
-    return {
-      msg, signature, nonce, expired_time, fee
-    }
-
-  } catch (error) {
-    throw error
-  }
-}
-
-//state -> confirmed
 export const confirmedMintBot = async (
-  events: SuiMintNftAiAgentEventStruct[],
-  tx: ParsedSuiTransaction,
-  logger: any
+  txHash: string,
+  event: MintNftEvent
 ) => {
   try {
+    //create bot
+    await multiConnectionTransaction(
+        [db.pool],
+        async (bail, clients, mongoSession) => {
+          try {
+            const [pgClient] = clients;
 
-    for (let i = 0; i < events.length; i++) {
-      const event = events[i]
-      try {
-        console.log(event)
-        let bot = await updateStateBot({
-          botId: String(event.xid),
-          state: BotState.Confirmed,
-          txHash: tx.digest,
-          nftId: String(event.id)
-        })
+            //create bot
+            await createBot(pgClient, {nftId: event.tokenId})
 
-        //add to SQS
-        await sendMessage(AWS_SQS_CREATE_AI_AGENT, JSON.stringify({xid: bot.id}))
-        await updateOnlyStateBot({
-          botId: String(event.xid),
-          state: BotState.WaitingGenerate,
-          oldState: BotState.Confirmed
-        })
-      } catch (error) {
-        logger.error(`confirmedMintBot -> updateStateBot() error or existed ` + String(event.xid) + tx.digest + " " + error)
-      }
-    }
+
+            //add to SQS -> gen agent AI
+
+
+          } catch (error) {
+            console.error("Error during bot processing transaction:", error);
+            bail(new Error("Error during bot processing transaction:" + error));
+            throw error;
+          }
+        }
+      );
+
+  } catch (error) {
+    throw error
+  }
+}
+
+const createBot = async (pool: PoolClient, params: {
+  nftId: string
+}) => {
+  try {
+    //check bot existed?
+
+    //gen bot -> avatar, rare
+
+    //gen json -> push s3 -> url: https://...s3/javis-agent/uploads/info/${nftId}.json
+
+    //create bot -> store db
+
 
   } catch (error) {
     throw error

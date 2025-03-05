@@ -15,8 +15,6 @@ enum OnChainStatus {
 }
 
 enum BotState {
-  draft
-  pending
   confirmed
   waiting_generate
   created
@@ -30,14 +28,14 @@ enum OrderState {
 
 model Bot {
   id                  BigInt      @id @default(autoincrement())
-  nftId               String?     @map("nft_id")
+  nftId               String      @map("nft_id") @unique
   userId              BigInt      @map("user_id")
-  agentId             String      @map("agent_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid @unique
+  agentId             String      @map("agent_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   owner               String
 
   avatar              String?
   introMsg            String?     @map("intro_msg")
-  prompt              String?    
+  prompt              String?
   background          String?
   name                String?
   nsfw                Boolean?
@@ -173,18 +171,19 @@ model Order {
   @@map("orders")
 }
 
-model SuiTransaction {
+model Transaction {
   id                  BigInt      @id @default(autoincrement())
   status              OnChainStatus @default(pending)
   txHash              String      @unique @map("tx_hash") @db.VarChar(66)
   sender              String?     @db.VarChar(199)
   recipient           String?     @db.VarChar(199)
+  nonce               BigInt?
+  contractAddress     String?     @map("contract_address") @db.VarChar(199)
+  blockNumber         BigInt?     @map("block_number")
   value               BigInt?
-  moveCall            String?     @map("move_call") @db.VarChar(199)
-  event0              String?     @db.VarChar(199)
-  event1              String?     @db.VarChar(199)
   events              Json?       @map("events")
   logs                Json?       @map("logs")
+  timestamp           BigInt?
   confirmedAt         DateTime?   @map("confirmed_at")
   createdAt           DateTime    @default(now()) @map("created_at")
 
@@ -192,7 +191,16 @@ model SuiTransaction {
   @@index([sender])
   @@index([recipient])
   @@index([txHash])
-  @@map("sui_transactions")
+  @@map("transactions")
+}
+
+model SystemSetting {
+  id         BigInt   @id @default(autoincrement())
+  key        String   @unique
+  value      String?
+  objValue   Json?    @map("obj_value")
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @default(now()) @map("updated_at")
 }
 
 model FavoriteBot {
