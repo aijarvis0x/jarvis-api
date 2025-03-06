@@ -2,7 +2,7 @@
 CREATE TYPE "OnChainStatus" AS ENUM ('pending', 'confirming', 'confirmed', 'reverted');
 
 -- CreateEnum
-CREATE TYPE "BotState" AS ENUM ('draft', 'pending', 'confirmed', 'waiting_generate', 'created');
+CREATE TYPE "BotState" AS ENUM ('confirmed', 'waiting_generate', 'created');
 
 -- CreateEnum
 CREATE TYPE "OrderState" AS ENUM ('listed', 'cancelled', 'purchased');
@@ -10,17 +10,20 @@ CREATE TYPE "OrderState" AS ENUM ('listed', 'cancelled', 'purchased');
 -- CreateTable
 CREATE TABLE "bots" (
     "id" BIGSERIAL NOT NULL,
-    "nft_id" TEXT,
+    "nft_id" TEXT NOT NULL,
     "user_id" BIGINT NOT NULL,
     "agent_id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "owner" TEXT NOT NULL,
     "avatar" TEXT,
+    "intro_msg" TEXT,
+    "prompt" TEXT,
     "background" TEXT,
     "name" TEXT,
     "nsfw" BOOLEAN,
     "tag" TEXT,
     "sub_tag" TEXT,
     "description" TEXT,
+    "attributes" JSONB,
     "setting_mode" JSONB,
     "state" "BotState" NOT NULL,
     "is_published" BOOLEAN NOT NULL DEFAULT false,
@@ -30,9 +33,6 @@ CREATE TABLE "bots" (
     "highest_price" BIGINT,
     "lowest_price" BIGINT,
     "count_conversation" BIGINT,
-    "msg" TEXT,
-    "signature" TEXT,
-    "nonce" BIGINT,
     "fee" BIGINT,
     "expired_time" TIMESTAMP(3),
     "tx_hash" VARCHAR(66),
@@ -119,22 +119,34 @@ CREATE TABLE "orders" (
 );
 
 -- CreateTable
-CREATE TABLE "sui_transactions" (
+CREATE TABLE "transactions" (
     "id" BIGSERIAL NOT NULL,
     "status" "OnChainStatus" NOT NULL DEFAULT 'pending',
     "tx_hash" VARCHAR(66) NOT NULL,
     "sender" VARCHAR(199),
     "recipient" VARCHAR(199),
+    "nonce" BIGINT,
+    "contract_address" VARCHAR(199),
+    "block_number" BIGINT,
     "value" BIGINT,
-    "move_call" VARCHAR(199),
-    "event0" VARCHAR(199),
-    "event1" VARCHAR(199),
     "events" JSONB,
     "logs" JSONB,
     "confirmed_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "sui_transactions_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "transactions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SystemSetting" (
+    "id" BIGSERIAL NOT NULL,
+    "key" TEXT NOT NULL,
+    "value" TEXT,
+    "obj_value" JSONB,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "SystemSetting_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -148,7 +160,7 @@ CREATE TABLE "favorite_bot" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "bots_agent_id_key" ON "bots"("agent_id");
+CREATE UNIQUE INDEX "bots_nft_id_key" ON "bots"("nft_id");
 
 -- CreateIndex
 CREATE INDEX "bots_nft_id_idx" ON "bots"("nft_id");
@@ -196,19 +208,22 @@ CREATE INDEX "orders_bot_id_idx" ON "orders"("bot_id");
 CREATE UNIQUE INDEX "orders_tx_hash_key" ON "orders"("tx_hash");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "sui_transactions_tx_hash_key" ON "sui_transactions"("tx_hash");
+CREATE UNIQUE INDEX "transactions_tx_hash_key" ON "transactions"("tx_hash");
 
 -- CreateIndex
-CREATE INDEX "sui_transactions_status_idx" ON "sui_transactions"("status");
+CREATE INDEX "transactions_status_idx" ON "transactions"("status");
 
 -- CreateIndex
-CREATE INDEX "sui_transactions_sender_idx" ON "sui_transactions"("sender");
+CREATE INDEX "transactions_sender_idx" ON "transactions"("sender");
 
 -- CreateIndex
-CREATE INDEX "sui_transactions_recipient_idx" ON "sui_transactions"("recipient");
+CREATE INDEX "transactions_recipient_idx" ON "transactions"("recipient");
 
 -- CreateIndex
-CREATE INDEX "sui_transactions_tx_hash_idx" ON "sui_transactions"("tx_hash");
+CREATE INDEX "transactions_tx_hash_idx" ON "transactions"("tx_hash");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SystemSetting_key_key" ON "SystemSetting"("key");
 
 -- CreateIndex
 CREATE INDEX "favorite_bot_user_id_idx" ON "favorite_bot"("user_id");
