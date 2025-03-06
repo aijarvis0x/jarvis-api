@@ -6,6 +6,7 @@ import userRoute from "./user.route.js"
 import chatRoute from "./chat.route.js"
 import explore from "./explore.route.js"
 import category from "./category.route.js"
+import metadata from "./metadata.route.js"
 
 export default async (app: AppInstance) => {
   app.register(authRoute, { prefix: "/api/auth" })
@@ -15,4 +16,5 @@ export default async (app: AppInstance) => {
   app.register(chatRoute, { prefix: "/api/chats" })
   app.register(explore, { prefix: "/api/explores" })
   app.register(category, { prefix: "/api/categories" })
+  app.register(metadata, { prefix: "/metadata/ai-agents" })
 }

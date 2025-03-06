@@ -1,11 +1,10 @@
-import { isValidSuiAddress } from "@mysten/sui/utils"
 import { z } from "zod"
 import { paginationSchema } from "./generic-schemas.js"
 
 export const createDepositNftReqSchema = z.object({
   reciever: z
-    .string()
-    .refine((v) => isValidSuiAddress(v), "Invalid sui address"),
+    .string(),
+
   xids: z.array(z.number()).max(5, "xids can have a maximum of 5 NFT"),
 })
 
@@ -14,7 +13,7 @@ export const listMarketSchema = {
     z.object({
       search: z.string().optional(),
       isOwner: z.boolean().optional(),
-      categoryIds: z.array(z.number().positive()).optional(), 
+      categoryIds: z.array(z.number().positive()).optional(),
     })
   ),
 } as const

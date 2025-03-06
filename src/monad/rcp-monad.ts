@@ -1,28 +1,24 @@
-import { ethers } from "ethers";
-import { MintNftABI } from "./abi/mint-nft.abi.js";
-const MONAD_RPC = process.env.CHAIN_NETWORK == "mainnet" ? "https://rpc.monad.xyz" : "https://testnet-rpc.monad.xyz";
-const MONAD_CHAIN_ID = process.env.CHAIN_NETWORK == "mainnet" ? 0 : 10143
+import { Web3 } from 'web3';
+import { MintNftABI } from './abi/mint-nft.abi.js';
+
+const MONAD_RPC = process.env.CHAIN_NETWORK === "mainnet" ? "https://rpc.monad.xyz" : "https://testnet-rpc.monad.xyz";
 const NETWORK_NAME = "Monad Testnet";
 
-export const monadProvider = new ethers.JsonRpcProvider(
-    MONAD_RPC,
-    {
-        chainId: MONAD_CHAIN_ID,
-        name: NETWORK_NAME,
-    }
+// Khởi tạo Web3 instance bằng cách truyền trực tiếp RPC URL
+export const web3 = new Web3(new Web3.providers.HttpProvider(MONAD_RPC));
+
+// Tạo contract instance với ABI và địa chỉ contract
+export const MintNftContract = new web3.eth.Contract(
+    MintNftABI,
+    String(process.env.NFT_CONTRACT_ADDRESS)
 );
 
-export const MintNftContract = new ethers.Contract(
-    String(process.env.NFT_CONTRACT_ADDRESS),
-    MintNftABI,
-    monadProvider
-
-)
-
+// Hàm trả về URL của giao dịch
 export function getTransactionUrl(txHash: string): string {
     return `https://testnet.monadexplorer.com/tx/${txHash}`;
 }
 
+// Hàm trả về URL của địa chỉ ví
 export function getAddressUrl(address: string): string {
     return `https://testnet.monadexplorer.com/address/${address}`;
 }

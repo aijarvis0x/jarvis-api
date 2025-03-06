@@ -24,8 +24,6 @@ export const BLOCK_BUY_IDS = parseFileToArraySync(
 )
 
 export enum BotState {
-  Draft = 'draft',
-  Pending = 'pending',
   Confirmed = 'confirmed',
   WaitingGenerate = 'waiting_generate',
   Created = 'created'

@@ -6,6 +6,7 @@ import dayjs from "dayjs"
 import { sendMessage } from "../lib/sqs.js"
 import { MintNftEvent } from "../utils/monad-utils.js"
 import { multiConnectionTransaction } from "../lib/db/transaction.js"
+import { findUserByAddress } from "./users.service.js"
 
 const MINT_AI_REQ_EXP = 86400000
 
@@ -61,6 +62,7 @@ export type BotSettingMode = {
   };
 }
 
+
 export enum ModelProvider {
   openai = 'openai'
 }
@@ -99,192 +101,106 @@ interface UpdateBotData {
   setting_mode?: Record<string, any>;
 }
 
-const insertBotDraft = async (userId: bigint, owner: string): Promise<BotInfo> => {
-  const defaultBotInfo = {
-    owner,
-    name: null,
-    avatar: null,
-    background: null,
-    setting_mode: JSON.stringify({
-      "clients": ["direct"],
-      "modelProvider": ModelProvider.openai,
-      "plugins": [PluginType.elizaos_plugin_suimarket],
-      "settings": {
-        "secrets": {},
-        "voice": {
-          "model": "en_US-male-medium"
-        }
+const SETTING_MODE_DEFAUT = JSON.stringify({
+  "clients": ["direct"],
+  "modelProvider": ModelProvider.openai,
+  "plugins": [PluginType.elizaos_plugin_suimarket],
+  "settings": {
+    "secrets": {},
+    "voice": {
+      "model": "en_US-male-medium"
+    }
+  },
+  "adjectives": [
+    "analytical",
+    "precise",
+    "data-driven",
+    "methodical",
+    "cautious",
+    "strategic",
+    "objective",
+    "insightful",
+    "professional",
+    "vigilant",
+    "rational",
+    "thorough"
+  ],
+  "bio": [
+    "Expert cryptocurrency market analyst and portfolio strategist",
+    "Specialized in real-time market analysis and trend identification",
+    "Data-driven trader with deep understanding of market dynamics"
+  ],
+  "lore": [
+    "Successfully predicted multiple major market movements",
+    "Developed innovative portfolio balancing strategies",
+    "Pioneer in combining on-chain metrics with traditional market analysis"
+  ],
+  "knowledge": [
+    "Deep understanding of cryptocurrency market mechanics",
+    "Expert in technical analysis and chart patterns",
+    "Proficient in DeFi protocols and yield strategies",
+    "Specialist in market sentiment analysis",
+    "Master of risk management and portfolio optimization"
+  ],
+  "messageExamples": [
+    [
+      {
+        "user": "{{user1}}",
+        "content": { "text": "What are today's top gainers?" }
       },
-      "adjectives": [
-        "analytical",
-        "precise",
-        "data-driven",
-        "methodical",
-        "cautious",
-        "strategic",
-        "objective",
-        "insightful",
-        "professional",
-        "vigilant",
-        "rational",
-        "thorough"
-      ],
-      "bio": [
-        "Expert cryptocurrency market analyst and portfolio strategist",
-        "Specialized in real-time market analysis and trend identification",
-        "Data-driven trader with deep understanding of market dynamics"
-      ],
-      "lore": [
-        "Successfully predicted multiple major market movements",
-        "Developed innovative portfolio balancing strategies",
-        "Pioneer in combining on-chain metrics with traditional market analysis"
-      ],
-      "knowledge": [
-        "Deep understanding of cryptocurrency market mechanics",
-        "Expert in technical analysis and chart patterns",
-        "Proficient in DeFi protocols and yield strategies",
-        "Specialist in market sentiment analysis",
-        "Master of risk management and portfolio optimization"
-      ],
-      "messageExamples": [
-        [
-          {
-            "user": "{{user1}}",
-            "content": { "text": "What are today's top gainers?" }
-          },
-          {
-            "user": "CryptoSage",
-            "content": {
-              "text": "Here are today's top performers:\n1. TOKEN-A: +25% (Volume: $1.2M)\n2. TOKEN-B: +18% (Volume: $800K)\n3. TOKEN-C: +15% (Volume: $500K)\nNotable catalyst for TOKEN-A is the new partnership announcement."
-            }
-          }
-        ],
-        [
-          {
-            "user": "{{user1}}",
-            "content": { "text": "How should I optimize my portfolio?" }
-          },
-          {
-            "user": "CryptoSage",
-            "content": {
-              "text": "Based on current market conditions, consider: 40% blue-chip (BTC/ETH), 30% mid-cap altcoins, 20% DeFi protocols, and 10% cash reserve for dips. Always maintain stop-losses and don't over-leverage."
-            }
-          }
-        ]
-      ],
-      "postExamples": [
-        "Market structure suggests accumulation phase - smart money moving quietly",
-        "Risk-off signals flashing: Funding rates negative, volume declining, time to be cautious",
-        "DeFi TVL hitting new highs while prices consolidate - bullish divergence forming"
-      ],
-      "topics": [
-        "cryptocurrency markets",
-        "trading strategies",
-        "portfolio management",
-        "market analysis",
-        "risk management",
-        "technical analysis",
-        "DeFi trends",
-        "market sentiment"
-      ],
-      "style": {
-        "all": [
-          "maintain technical accuracy",
-          "be approachable and clear",
-          "use concise and professional language"
-        ],
-        "chat": [
-          "ask clarifying questions when needed",
-          "provide examples to explain complex concepts",
-          "maintain a friendly and helpful tone"
-        ],
-        "post": [
-          "share insights concisely",
-          "focus on practical applications",
-          "use engaging and professional language"
-        ]
+      {
+        "user": "CryptoSage",
+        "content": {
+          "text": "Here are today's top performers:\n1. TOKEN-A: +25% (Volume: $1.2M)\n2. TOKEN-B: +18% (Volume: $800K)\n3. TOKEN-C: +15% (Volume: $500K)\nNotable catalyst for TOKEN-A is the new partnership announcement."
+        }
       }
-    }),
-    nsfw: false,
-    tag: null,
-    sub_tag: null,
-    description: null,
-    state: BotState.Draft,
-    is_published: false,
-    is_prompt_published: false,
-    category_ids: [],
-    website: null,
-    telegram: null,
-    discord: null,
-    x: null,
-  };
-
-  const query = `
-    INSERT INTO bots (
-      user_id, name, avatar, background, setting_mode, nsfw, tag, sub_tag, description,
-      state, is_published, is_prompt_published, category_ids, website, telegram, discord, x, created_at, updated_at, owner
-    ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), NOW(), $18
-    ) RETURNING *;
-  `;
-
-  const values = [
-    userId,
-    defaultBotInfo.name,
-    defaultBotInfo.avatar,
-    defaultBotInfo.background,
-    defaultBotInfo.setting_mode,
-    defaultBotInfo.nsfw,
-    defaultBotInfo.tag,
-    defaultBotInfo.sub_tag,
-    defaultBotInfo.description,
-    defaultBotInfo.state,
-    defaultBotInfo.is_published,
-    defaultBotInfo.is_prompt_published,
-    defaultBotInfo.category_ids,
-    defaultBotInfo.website,
-    defaultBotInfo.telegram,
-    defaultBotInfo.discord,
-    defaultBotInfo.x,
-    defaultBotInfo.owner
-  ];
-
-  const result = await db.pool.query(query, values);
-
-  const bot = result.rows?.[0] ?? null;
-
-  return {
-    id: bot.id,
-    name: bot.name || undefined,
-    avatar: bot.avatar || undefined,
-    background: bot.background || undefined,
-    setting_mode: bot.setting_mode ? JSON.parse(JSON.stringify(bot.setting_mode)) : undefined,
-    nsfw: bot.nsfw || undefined,
-    tag: bot.tag || undefined,
-    sub_tag: bot.sub_tag || undefined,
-    description: bot.description || undefined,
-    state: bot.state || undefined,
-    is_published: bot.is_published || undefined,
-    is_prompt_published: bot.is_prompt_published || undefined,
-    category_ids: bot.category_ids || [],
-    website: bot.website || undefined,
-    telegram: bot.telegram || undefined,
-    discord: bot.discord || undefined,
-    x: bot.x || undefined,
-  };
-};
-
-const findBotDraft = async (userId: bigint): Promise<BotInfo> => {
-  const statement: QueryConfig = {
-    name: "findBotDraft",
-    text: "SELECT * FROM bots WHERE user_id = $1 AND state = 'draft' LIMIT 1",
-    values: [userId],
+    ],
+    [
+      {
+        "user": "{{user1}}",
+        "content": { "text": "How should I optimize my portfolio?" }
+      },
+      {
+        "user": "CryptoSage",
+        "content": {
+          "text": "Based on current market conditions, consider: 40% blue-chip (BTC/ETH), 30% mid-cap altcoins, 20% DeFi protocols, and 10% cash reserve for dips. Always maintain stop-losses and don't over-leverage."
+        }
+      }
+    ]
+  ],
+  "postExamples": [
+    "Market structure suggests accumulation phase - smart money moving quietly",
+    "Risk-off signals flashing: Funding rates negative, volume declining, time to be cautious",
+    "DeFi TVL hitting new highs while prices consolidate - bullish divergence forming"
+  ],
+  "topics": [
+    "cryptocurrency markets",
+    "trading strategies",
+    "portfolio management",
+    "market analysis",
+    "risk management",
+    "technical analysis",
+    "DeFi trends",
+    "market sentiment"
+  ],
+  "style": {
+    "all": [
+      "maintain technical accuracy",
+      "be approachable and clear",
+      "use concise and professional language"
+    ],
+    "chat": [
+      "ask clarifying questions when needed",
+      "provide examples to explain complex concepts",
+      "maintain a friendly and helpful tone"
+    ],
+    "post": [
+      "share insights concisely",
+      "focus on practical applications",
+      "use engaging and professional language"
+    ]
   }
-
-  return await db.pool.query(statement)
-    .then((result) => result.rows?.[0] ?? null)
-}
-
+})
 export const findBotById = async (botId: BotId, userId: bigint) => {
   const statement: QueryConfig = {
     name: "findBotById",
@@ -324,6 +240,17 @@ export const findBotByNftId = async (botObjId: string, confirmedAt: Date | null)
     name: "findBotByNftId",
     text: "SELECT * FROM bots WHERE nft_id = $1 AND lastest_act < $2 LIMIT 1",
     values: [botObjId, dayjs.utc(confirmedAt).toDate()],
+  }
+
+  return await db.pool.query(statement)
+    .then((result) => result.rows?.[0] ?? null)
+}
+
+export const findBotByOnlyNftId = async (botObjId: string) => {
+  const statement: QueryConfig = {
+    name: "findBotByOnlyNftId",
+    text: "SELECT * FROM bots WHERE nft_id = $1 LIMIT 1",
+    values: [botObjId],
   }
 
   return await db.pool.query(statement)
@@ -548,29 +475,6 @@ export const updateBotBackground = async (botId: BotId, backgroundUrl: string): 
 };
 
 
-export const updateBotSign = async (botId: BotId, msg: string, signature: string, nonce: bigint, expired_time: Date, fee): Promise<void> => {
-  const query = `
-    UPDATE bots
-    SET msg = $1,
-        signature = $2,
-        nonce = $3,
-        expired_time = $4,
-        fee = $5,
-        updated_at = NOW()
-    WHERE id = $6 AND state = 'pending';
-  `;
-
-  const values = [msg, signature, nonce, expired_time, fee, botId];
-
-  try {
-    await db.pool.query(query, values);
-  } catch (error) {
-    throw error;
-  }
-};
-
-
-
 
 export const confirmedMintBot = async (
   txHash: string,
@@ -579,43 +483,113 @@ export const confirmedMintBot = async (
   try {
     //create bot
     await multiConnectionTransaction(
-        [db.pool],
-        async (bail, clients, mongoSession) => {
-          try {
-            const [pgClient] = clients;
+      [db.pool],
+      async (bail, clients, mongoSession) => {
+        try {
+          const [pgClient] = clients;
 
-            //create bot
-            await createBot(pgClient, {nftId: event.tokenId})
+          const owner = await findUserByAddress(event.owner)
 
+          if (!owner) throw new Error("Owner does't exist")
 
-            //add to SQS -> gen agent AI
+          //create bot
+          const botId = await createBot(pgClient, { nftId: event.tokenId, owner: event.owner, ownerId: owner.id, agentType: event.agentType, packageId: event.packageId })
 
+          //add to SQS -> gen agent AI
+          await sendMessage(AWS_SQS_CREATE_AI_AGENT, JSON.stringify({ xid: botId }))
 
-          } catch (error) {
-            console.error("Error during bot processing transaction:", error);
-            bail(new Error("Error during bot processing transaction:" + error));
-            throw error;
-          }
+        } catch (error) {
+          console.error("Error during bot processing transaction:", error);
+          bail(new Error("Error during bot processing transaction:" + error));
+          throw error;
         }
-      );
+      }
+    );
 
   } catch (error) {
     throw error
   }
 }
 
-const createBot = async (pool: PoolClient, params: {
-  nftId: string
-}) => {
+export const createBot = async (pool: PoolClient, params: { nftId: string, ownerId: bigint, owner: string, agentType: number, packageId: number }): Promise<bigint> => {
+
   try {
-    //check bot existed?
+    const checkQuery = 'SELECT id FROM bots WHERE nft_id = $1';
+    const checkResult = await pool.query(checkQuery, [params.nftId]);
+    if (!!checkResult?.rowCount && checkResult?.rowCount > 0) {
+      throw new Error(`Bot with nftId ${params.nftId} already exists.`);
+    }
 
-    //gen bot -> avatar, rare
+    //@todo random nft
+    // const avatarUrl = `https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/avatars/${params.nftId}.jpeg`;
+    const avatarUrl = `https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/avatars/example.jpeg`;
+    const description = "No description"
+    const attributes = JSON.stringify([
+      {
+        "trait_type": "Base",
+        "value": "Starfish"
+      },
+      {
+        "trait_type": "Eyes",
+        "value": "Big"
+      },
+      {
+        "trait_type": "Mouth",
+        "value": "Surprised"
+      },
+      {
+        "trait_type": "Level",
+        "value": 5
+      },
+      {
+        "trait_type": "Stamina",
+        "value": 1.4
+      },
+      {
+        "trait_type": "Personality",
+        "value": "Sad"
+      },
+      {
+        "display_type": "boost_number",
+        "trait_type": "Aqua Power",
+        "value": 40
+      },
+      {
+        "display_type": "boost_percentage",
+        "trait_type": "Stamina Increase",
+        "value": 10
+      },
+      {
+        "display_type": "number",
+        "trait_type": "Generation",
+        "value": 2
+      }
+    ])
 
-    //gen json -> push s3 -> url: https://...s3/javis-agent/uploads/info/${nftId}.json
 
-    //create bot -> store db
+    const insertQuery = `
+          INSERT INTO bots
+            (nft_id, user_id, owner, avatar, description, attributes, json, setting_mode, state, created_at, updated_at, lastest_act)
+          VALUES
+            ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW(), NOW())
+          RETURNING id;
+        `;
+    const values = [
+      params.nftId,
+      params.ownerId,
+      params.owner,
+      avatarUrl,
+      description,
+      attributes,
+      SETTING_MODE_DEFAUT,
+      BotState.WaitingGenerate,
+    ];
 
+    const result = await pool.query(insertQuery, values);
+    const newBotId = result.rows[0].id;
+
+
+    return BigInt(newBotId);
 
   } catch (error) {
     throw error

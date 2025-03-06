@@ -37,10 +37,6 @@ export const REDIS_PREDIX = env
   .default("wallet-app:")
   .asString()
 
-export const SUI_VALIDATOR_MNEMONIC = env
-  .get("SUI_VALIDATOR_MNEMONIC")
-  .required()
-  .asString()
 
 export const USE_MARKET_REDIS_QUERY_CACHE = env
   .get("USE_MARKET_REDIS_QUERY_CACHE")
@@ -58,9 +54,9 @@ export const MARKET_PACKAGE_ID = env
   // .required()
   .asString()
 
-export const NFT_PACKAGE_ID = env
-  .get("NFT_PACKAGE_ID")
-  .default(process.env.NFT_PACKAGE_ID ?? "")
+export const NFT_CONTRACT_ADDRESS = env
+  .get("NFT_CONTRACT_ADDRESS")
+  .default(process.env.NFT_CONTRACT_ADDRESS ?? "")
   .required()
   .asString()
 

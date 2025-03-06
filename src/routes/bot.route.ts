@@ -4,10 +4,9 @@ import { optionalAuthenticate } from "../plugins/optional-auth.js"
 import {
   updateBotInfoSchema,
   uploadBotAvatarSchema,
-  deployBotReqSchema,
   publishBotSchema
 } from "../schemas/bot.schema.js"
-import { createBotDraft, findBotById, updateBotBackground, updateBotAvatar, updateBotById, findBotByIdNonOwner, getListBots, publishBot, genSignMintBot, updateStateBot, updateOnlyStateBot } from "../services/bot.service.js"
+import { findBotById, updateBotBackground, updateBotById, findBotByIdNonOwner, getListBots, publishBot } from "../services/bot.service.js"
 
 
 import type { AppInstance } from "../types.js"
@@ -19,67 +18,6 @@ export default async (app: AppInstance) => {
 
   await configureFileUpload(app);
 
-
-  app.post("/create-draft", {
-    schema: {
-      tags: ["Bot"]
-    },
-    onRequest: app.authenticate,
-    handler: async (request, reply) => {
-      const { userId, address } = request
-
-      try {
-        const result = await createBotDraft(userId, address)
-
-        return reply.status(200).send({
-          message: "OK",
-          data: result
-        })
-      } catch (error) {
-        console.log(error)
-        return reply.status(500).send({
-          message: "Server error"
-        })
-      }
-    },
-  })
-
-  app.post("/upload-avatar", {
-    schema: {
-      tags: ["Bot"],
-      body: uploadBotAvatarSchema
-    },
-    onRequest: app.authenticate,
-    handler: async (request, reply) => {
-      try {
-        const { userId } = request
-        const botId = request.body.id;
-        const { mimeType, fileSize } = request.body
-
-        const bot = await findBotById(botId, userId)
-        if (!bot) {
-          return reply.status(400).send({ message: "AI-agent doesn't exist" });
-        }
-
-        if (bot.state != BotState.Draft) {
-          return reply.status(400).send({ message: "Only upload bot's avatar before deployment" });
-        }
-
-        const result = await app.uploadFileToS3(mimeType, 'bots/avatars', botId, fileSize);
-
-        //update avatar bot
-        await updateBotAvatar(botId, result.key)
-
-        return reply.status(200).send({
-          message: "Avatar uploaded successfully",
-          data: result,
-        });
-      } catch (err) {
-        console.error(err);
-        return reply.status(500).send({ message: "Failed to upload avatar" });
-      }
-    }
-  })
 
   app.post("/upload-background", {
     schema: {
@@ -198,7 +136,7 @@ export default async (app: AppInstance) => {
         }
 
         //@todo update condition
-        if(categoryIds && categoryIds.length > 0){
+        if (categoryIds && categoryIds.length > 0) {
           updateData.category_ids = categoryIds
         }
 
@@ -217,84 +155,7 @@ export default async (app: AppInstance) => {
     },
   });
 
-  app.post("/deploy-req", {
-    schema: {
-      tags: ["Bot"],
-      body: deployBotReqSchema
-    },
-    onRequest: app.authenticate,
-    handler: async (request, reply) => {
-      const { userId, address } = request
-      const { id } = request.body
 
-      const now = dayjs.utc().valueOf()
-      try {
-        const bot = await findBotById(id, userId);
-        if (!bot) {
-          return reply.status(404).send({ message: "AI-agent not found" });
-        }
-
-        if(!bot.name) {
-          return reply.status(404).send({ message: "Agent's Name is required" });
-        }
-
-        if(!bot.avatar) {
-          return reply.status(404).send({ message: "Agent's Avatar is required" });
-        }
-
-        if (![BotState.Draft, BotState.Pending].includes(bot.state)) {
-          return reply.status(404).send({ message: "Invalid AI-agent status. Only 'Draft' or 'Pending' states are allowed." });
-        }
-
-        //
-        await updateOnlyStateBot(
-          {
-            botId: bot.id,
-            state: BotState.Pending,
-            oldState: BotState.Draft
-          }
-        )
-
-        //gen msg, signature, nonce
-        if (bot?.msg && dayjs.utc(bot?.expired_time).valueOf() > now) {
-          return reply.status(200).send({
-            message: "OK",
-            data: {
-              id,
-              msg: bot?.msg,
-              signature: bot?.signature,
-              nonce: bot?.nonce,
-              expired_time: bot?.expired_time,
-              fee: bot?.fee
-            },
-          });
-        } else {
-          //gen
-          const { msg, signature, nonce, expired_time, fee } = await genSignMintBot({
-            id: userId,
-            receiver: address,
-            name: bot.name,
-            xid: bot.id,
-            description: bot.description
-          })
-
-          return reply.status(200).send({
-            message: "OK",
-            data: {
-              id,
-              msg, signature, nonce, expired_time, fee
-            },
-          });
-        }
-
-      } catch (error) {
-        console.log(error)
-        return reply.status(500).send({
-          message: "Internal Server Error"
-        })
-      }
-    },
-  })
 
   app.get("/agent/:id", {
     schema: {

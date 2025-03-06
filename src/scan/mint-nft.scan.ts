@@ -1,5 +1,10 @@
 import { CronJob } from 'cron';
-import { MintNftContract, monadProvider } from '../monad/rcp-monad.js';
+import { MintNftContract, web3 } from '../monad/rcp-monad.js';
+import { db } from '../lib/pg.js';
+import { MintNftEvent, TxStatus } from '../utils/monad-utils.js';
+import { EventLog } from 'web3';
+import dayjs from 'dayjs';
+import { confirmedMintBot } from '../services/bot.service.js';
 
 const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => {
@@ -22,26 +27,68 @@ const processEventBlock = async (
   }
 };
 
+const createTransaction = async (params: {
+  txHash,
+  status,
+  sender,
+  recipient,
+  nonce,
+  contractAddress,
+  blockNumber,
+  value,
+  events,
+  logs,
+  confirmedAt,
+}) => {
+  try {
+    const insertQuery = `
+      INSERT INTO transactions
+        (tx_hash, status, sender, recipient, nonce, contract_address, block_number, value, events, logs, confirmed_at)
+      VALUES
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING *;
+    `;
+
+    const values = Object.values(params);
+
+    await db.pool.query(insertQuery, values);
+
+    return true
+
+  } catch (error) {
+    return false
+  }
+}
+
 const _claimFundEvent = async (
   blocks: BlockRange,
   currentBlockNumber?: number
 ): Promise<void> => {
   try {
 
-    const pastEvents = await MintNftContract.queryFilter("Minted", blocks[0], blocks[1])
-    console.log(`pastEvents`, pastEvents?.length)
+
+    const pastEvents = await MintNftContract.getPastEvents('allEvents', {
+      fromBlock: blocks[0],
+      toBlock: blocks[1]
+    })
+    console.log(`pastEvents`, pastEvents)
+
+
 
     if (pastEvents == null || pastEvents.length == 0) {
-        return
+      return
     }
 
-    for(let i = 0; i < pastEvents.length; i ++){
-      const event = pastEvents[i]
-      //check transaction existed?
+    for (let i = 0; i < pastEvents.length; i++) {
+      const event = pastEvents[i] as EventLog
+      switch (event.event) {
+        case "Minted":
+          await mintEvent(event)
+          break;
 
-
-
-      //confirm mint bot
+        default:
+          break;
+      }
 
 
     }
@@ -55,7 +102,32 @@ const _claimFundEvent = async (
   }
 };
 
-let blockStart: number = 6274837;
+const mintEvent = async (event: EventLog) => {
+
+      //check transaction existed?
+      let log = await createTransaction({
+        txHash: event?.transactionHash,
+        status: TxStatus.CONFIRMED,
+        sender: event?.returnValues?.owner,
+        recipient: event.address,
+        nonce: event.transactionIndex,
+        contractAddress: process.env.NFT_CONTRACT_ADDRESS,
+        blockNumber: event.blockNumber,
+        value: "",
+        events: event?.returnValues,
+        logs: event,
+        confirmedAt: dayjs.utc().toDate(),
+      })
+
+      if(!log) {
+        return
+      }
+
+      // confirm mint bot
+      await confirmedMintBot(String(event?.transactionHash), event.returnValues as MintNftEvent)
+}
+
+let blockStart: number = 6274830;
 let delayBlockNumber: number = 2;
 
 let paused: boolean = false;
@@ -70,13 +142,14 @@ const transactionSuccessJob = new CronJob(
       }
       paused = true;
 
+      console.log(`currentBlockNumber` ,await web3.eth.getBlockNumber())
 
       const currentBlockNumber: number = Number(
-        await monadProvider.getBlockNumber()
+        await web3.eth.getBlockNumber()
       );
       if (currentBlockNumber) {
         let blockEnd = currentBlockNumber - delayBlockNumber;
-        blockEnd = blockEnd - blockStart > 1000 ? blockStart + 1000 : blockEnd;
+        blockEnd = blockEnd - blockStart > 99 ? blockStart + 99 : blockEnd;
 
         console.log(`currentBlockNumber: ${currentBlockNumber}`);
         console.log(`blockStart: ${blockStart}`);
