@@ -1,4 +1,3 @@
-import { isValidSuiAddress } from "@mysten/sui/utils"
 import { z } from "zod"
 
 export const loginSchema = z.object({
