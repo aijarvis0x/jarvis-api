@@ -96,15 +96,9 @@ export const build = async (
   app.setValidatorCompiler(validatorCompiler)
   app.setSerializerCompiler(serializerCompiler)
 
-  // app.register(cors, {
-  //   origin: ["http://localhost:5173", "http://127.0.0.1:5173", "https://test.5son.ai", "https://api.5son.ai", "https://5son.ai"],
-  //   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  //   credentials: true,
-  // });
-
   app.register(cors, {
-    origin: ["http://localhost:5173",
-      "http://127.0.0.1:5173",],
+    origin: ["http://localhost:3030",
+      "http://127.0.0.1:3030", "https://test.jarvis.xyz"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"]
