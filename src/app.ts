@@ -98,7 +98,7 @@ export const build = async (
 
   app.register(cors, {
     origin: ["http://localhost:3030",
-      "http://127.0.0.1:3030", "https://test.jarvis.xyz"],
+      "http://127.0.0.1:3030", "https://test.aijarvis.xyz"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"]

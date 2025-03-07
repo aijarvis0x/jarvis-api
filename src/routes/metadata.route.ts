@@ -22,7 +22,7 @@ export default async (app: AppInstance) => {
 
         return reply.send({
           "description": bot?.description,
-          "external_url": `https://app.javis.xyz/ai-agents/${bot.id}`,
+          "external_url": `https://app.aijarvis.xyz/ai-agents/${bot.id}`,
           "image": bot?.avatar,
           "name": bot?.name ?? "Test",
           "attributes": bot?.attributes
