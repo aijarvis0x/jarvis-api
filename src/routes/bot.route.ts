@@ -19,6 +19,7 @@ export default async (app: AppInstance) => {
   await configureFileUpload(app);
 
 
+  
   app.post("/upload-background", {
     schema: {
       tags: ["Bot"],
