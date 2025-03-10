@@ -498,6 +498,7 @@ export const confirmedMintBot = async (
             sender: eventLog?.returnValues?.owner,
             recipient: eventLog.address,
             nonce: Number(eventLog.transactionIndex),
+            logIndex: Number(eventLog.logIndex),
             contractAddress: process.env.NFT_CONTRACT_ADDRESS,
             blockNumber: Number(eventLog.blockNumber),
             value: 0,
@@ -511,6 +512,7 @@ export const confirmedMintBot = async (
             confirmedAt: dayjs.utc().toDate(),
           })
 
+
           if (!log) {
             throw new Error("transaction existed. Tx: " + String(eventLog?.transactionHash))
           }
@@ -520,10 +522,10 @@ export const confirmedMintBot = async (
           if (!owner) throw new Error("Owner does't exist")
 
           //create bot
-          const botId = await createBot(pgClient, { nftId: event.tokenId, owner: event.owner, ownerId: owner.id, agentType: event.agentType, packageId: event.packageId })
+          const botId = await createBot(pgClient, { nftId: String(event.tokenId), owner: event.owner, ownerId: BigInt(owner.id), agentType: Number(event.agentType), packageId: Number(event.packageId) })
 
           //add to SQS -> gen agent AI
-          await sendMessage(AWS_SQS_CREATE_AI_AGENT, JSON.stringify({ xid: botId }))
+          await sendMessage(AWS_SQS_CREATE_AI_AGENT, JSON.stringify({ xid: Number(botId) }))
 
         } catch (error) {
           bail(new Error("Error during bot processing transaction:" + error));

@@ -35,6 +35,7 @@ export const createTransaction = async (params: {
   nonce,
   contractAddress,
   blockNumber,
+  logIndex,
   value,
   events,
   logs,
@@ -43,20 +44,33 @@ export const createTransaction = async (params: {
   try {
     const insertQuery = `
       INSERT INTO transactions
-        (tx_hash, status, sender, recipient, nonce, contract_address, block_number, value, events, logs, confirmed_at)
+        (tx_hash, status, sender, recipient, nonce, log_index, contract_address, block_number, value, events, logs, confirmed_at)
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *;
     `;
 
-    const values = Object.values(params);
 
-    await db.pool.query(insertQuery, values);
+
+    await db.pool.query(insertQuery, [
+      params.txHash,
+      params.status,
+      params.sender,
+      params.recipient,
+      params.nonce,
+      params.logIndex,
+      params.contractAddress,
+      params.blockNumber,
+      params.value,
+      params.events,
+      params.logs,
+      params.confirmedAt,
+    ]);
 
     return true
 
   } catch (error) {
-    // console.log(error)
+    console.log(error)
     return false
   }
 }
@@ -72,7 +86,7 @@ const _claimFundEvent = async (
       fromBlock: blocks[0],
       toBlock: blocks[1]
     })
-    console.log(`pastEvents`, pastEvents)
+    console.log(`pastEvents`, pastEvents.length)
 
 
 
@@ -81,6 +95,7 @@ const _claimFundEvent = async (
     }
 
     for (let i = 0; i < pastEvents.length; i++) {
+
       const event = pastEvents[i] as EventLog
       switch (event.event) {
         case "Minted":
@@ -90,7 +105,6 @@ const _claimFundEvent = async (
         default:
           break;
       }
-
 
     }
 
@@ -103,10 +117,37 @@ const _claimFundEvent = async (
   }
 };
 
-const mintEvent = async (event: EventLog) => {
 
-      // confirm mint bot
-      await confirmedMintBot(String(event?.transactionHash), event.returnValues as MintNftEvent, event)
+const isTxNotExist = async (txHash, logIndex) => {
+  try {
+    const selectQuery = `
+    SELECT *
+    FROM transactions
+    WHERE tx_hash = $1 AND log_index = $2;
+  `;
+    const result = await db.pool.query(selectQuery, [txHash, logIndex]);
+
+    if (result.rows.length === 0) {
+      return true
+    }
+    return false
+  } catch (error) {
+    console.log(error)
+    return false
+  }
+}
+
+const mintEvent = async (event: EventLog) => {
+  console.log(event)
+
+  //check event exist
+  if(!(await isTxNotExist(event.transactionHash, event.logIndex))){
+    return console.log(`Tx ${event.transactionHash} existed`)
+  }
+
+  // confirm mint bot
+  await confirmedMintBot(String(event?.transactionHash), event.returnValues as MintNftEvent, event)
+
 }
 
 let blockStart: number = 7096250;
@@ -124,7 +165,7 @@ const transactionSuccessJob = new CronJob(
       }
       paused = true;
 
-      console.log(`currentBlockNumber` ,await web3.eth.getBlockNumber())
+      console.log(`currentBlockNumber`, await web3.eth.getBlockNumber())
 
       const currentBlockNumber: number = Number(
         await web3.eth.getBlockNumber()

@@ -172,10 +172,11 @@ model Order {
 model Transaction {
   id                  BigInt      @id @default(autoincrement())
   status              OnChainStatus @default(pending)
-  txHash              String      @unique @map("tx_hash") @db.VarChar(66)
+  txHash              String      @map("tx_hash") @db.VarChar(66)
   sender              String?     @db.VarChar(199)
   recipient           String?     @db.VarChar(199)
   nonce               BigInt?
+  logIndex            BigInt?     @map("log_index")
   contractAddress     String?     @map("contract_address") @db.VarChar(199)
   blockNumber         BigInt?     @map("block_number")
   value               BigInt?
@@ -221,7 +222,7 @@ model MintImageHistory {
   imageName       String
   url             String
   agentType       String
-  packageType     String   
+  packageType     String
   attributes      Json?
   createdAt       DateTime @default(now()) @map("created_at")
 
