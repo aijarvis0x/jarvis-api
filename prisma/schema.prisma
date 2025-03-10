@@ -215,3 +215,12 @@ model FavoriteBot {
 
   @@map("favorite_bot")
 }
+
+model MintImageHistory {
+  id              BigInt   @id @default(autoincrement())
+  url             String
+  agentType       String   
+  attributes      Json?
+
+  @@map("mint_image_history")
+}
