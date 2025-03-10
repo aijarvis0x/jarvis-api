@@ -12,23 +12,23 @@ import { db } from "../lib/pg.js"
 const POOL_CONFIG = {
   // 5 different pool types
   pool1: {
-    bucketName: 'image-pool-1',
+    bucketName: 'jarvis',
     folderPrefix: 'pool1/'
   },
   pool2: {
-    bucketName: 'image-pool-2',
+    bucketName: 'jarvis',
     folderPrefix: 'pool2/'
   },
   pool3: {
-    bucketName: 'image-pool-3',
+    bucketName: 'jarvis',
     folderPrefix: 'pool3/'
   },
   pool4: {
-    bucketName: 'image-pool-4',
+    bucketName: 'jarvis',
     folderPrefix: 'pool4/'
   },
   pool5: {
-    bucketName: 'image-pool-5',
+    bucketName: 'jarvis',
     folderPrefix: 'pool5/'
   }
 };
