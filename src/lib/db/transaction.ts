@@ -65,7 +65,7 @@ export async function multiConnectionTransaction<T = any>(
       }
     },
     {
-      retries: 3,
+      retries: 0,
       minTimeout: 50,
       maxTimeout: 200,
       maxRetryTime: 3000,

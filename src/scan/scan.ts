@@ -27,7 +27,7 @@ const processEventBlock = async (
   }
 };
 
-const createTransaction = async (params: {
+export const createTransaction = async (params: {
   txHash,
   status,
   sender,
@@ -56,6 +56,7 @@ const createTransaction = async (params: {
     return true
 
   } catch (error) {
+    // console.log(error)
     return false
   }
 }
@@ -104,27 +105,8 @@ const _claimFundEvent = async (
 
 const mintEvent = async (event: EventLog) => {
 
-      //check transaction existed?
-      let log = await createTransaction({
-        txHash: event?.transactionHash,
-        status: TxStatus.CONFIRMED,
-        sender: event?.returnValues?.owner,
-        recipient: event.address,
-        nonce: event.transactionIndex,
-        contractAddress: process.env.NFT_CONTRACT_ADDRESS,
-        blockNumber: event.blockNumber,
-        value: "",
-        events: event?.returnValues,
-        logs: event,
-        confirmedAt: dayjs.utc().toDate(),
-      })
-
-      if(!log) {
-        return
-      }
-
       // confirm mint bot
-      await confirmedMintBot(String(event?.transactionHash), event.returnValues as MintNftEvent)
+      await confirmedMintBot(String(event?.transactionHash), event.returnValues as MintNftEvent, event)
 }
 
 let blockStart: number = 7096250;

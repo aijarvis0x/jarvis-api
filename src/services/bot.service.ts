@@ -4,9 +4,11 @@ import { BotState } from "../constants.js"
 import { AWS_REGION, AWS_SQS_CREATE_AI_AGENT, MINT_AI_FEE } from "../env.js"
 import dayjs from "dayjs"
 import { sendMessage } from "../lib/sqs.js"
-import { MintNftEvent } from "../utils/monad-utils.js"
+import { MintNftEvent, TxStatus } from "../utils/monad-utils.js"
 import { multiConnectionTransaction } from "../lib/db/transaction.js"
 import { findUserByAddress } from "./users.service.js"
+import { EventLog } from 'web3';
+import { createTransaction } from "../scan/scan.js"
 
 const MINT_AI_REQ_EXP = 86400000
 
@@ -478,7 +480,8 @@ export const updateBotBackground = async (botId: BotId, backgroundUrl: string): 
 
 export const confirmedMintBot = async (
   txHash: string,
-  event: MintNftEvent
+  event: MintNftEvent,
+  eventLog: EventLog
 ) => {
   try {
     //create bot
@@ -487,6 +490,30 @@ export const confirmedMintBot = async (
       async (bail, clients, mongoSession) => {
         try {
           const [pgClient] = clients;
+
+          //check transaction existed?
+          let log = await createTransaction({
+            txHash: eventLog?.transactionHash,
+            status: TxStatus.CONFIRMED,
+            sender: eventLog?.returnValues?.owner,
+            recipient: eventLog.address,
+            nonce: Number(eventLog.transactionIndex),
+            contractAddress: process.env.NFT_CONTRACT_ADDRESS,
+            blockNumber: Number(eventLog.blockNumber),
+            value: 0,
+            events: {
+              owner: eventLog.returnValues.owner,
+              tokenId: Number(eventLog?.returnValues?.tokenId),
+              agentType: Number(eventLog.returnValues.agentType),
+              packageId: Number(eventLog.returnValues.packageId)
+            },
+            logs: null,
+            confirmedAt: dayjs.utc().toDate(),
+          })
+
+          if (!log) {
+            throw new Error("transaction existed. Tx: " + String(eventLog?.transactionHash))
+          }
 
           const owner = await findUserByAddress(event.owner)
 
@@ -499,7 +526,6 @@ export const confirmedMintBot = async (
           await sendMessage(AWS_SQS_CREATE_AI_AGENT, JSON.stringify({ xid: botId }))
 
         } catch (error) {
-          console.error("Error during bot processing transaction:", error);
           bail(new Error("Error during bot processing transaction:" + error));
           throw error;
         }
