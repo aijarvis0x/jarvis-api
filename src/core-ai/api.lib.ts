@@ -9,6 +9,7 @@ export const client = new HttpClient({
     timeout: 10000,
     headers: {
         "Content-Type": "application/json",
+        "Authorization": process.env.AUTH_JARVIS_TOKEN
     },
 })
 
