@@ -105,13 +105,19 @@ async function listAvailableImages(s3: AWS.S3, pool) {
 }
 
 async function loadUsedImages() {
-  const statement: QueryConfig = {
+  const statement = {
     name: "loadUsedImages",
     text: "SELECT * FROM mint_image_history",
-  }
+  };
 
   return await db.pool.query(statement)
-    .then((result) => result.rows)
+    .then((result) => {
+      return result.rows.reduce((map, row) => {
+        const { imageName, ...rest } = row; // Tách imageName ra khỏi row
+        map.set(imageName, rest); // Đặt imageName làm key
+        return map;
+      }, new Map());
+    });
 }
 
 async function saveUsedImages(url, agentType) {

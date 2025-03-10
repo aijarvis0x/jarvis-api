@@ -218,9 +218,12 @@ model FavoriteBot {
 
 model MintImageHistory {
   id              BigInt   @id @default(autoincrement())
+  imageName       String
   url             String
-  agentType       String   
+  agentType       String
+  packageType     String   
   attributes      Json?
+  createdAt       DateTime @default(now()) @map("created_at")
 
   @@map("mint_image_history")
 }
