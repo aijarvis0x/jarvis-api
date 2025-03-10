@@ -127,7 +127,7 @@ const mintEvent = async (event: EventLog) => {
       await confirmedMintBot(String(event?.transactionHash), event.returnValues as MintNftEvent)
 }
 
-let blockStart: number = 6274830;
+let blockStart: number = 7096250;
 let delayBlockNumber: number = 2;
 
 let paused: boolean = false;
