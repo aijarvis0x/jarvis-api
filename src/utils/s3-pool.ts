@@ -4,6 +4,9 @@ import AWS from 'aws-sdk';
 import {v4 as uuidv4} from 'uuid';
 import type { PoolClient, QueryConfig } from "pg"
 import { db } from "../lib/pg.js"
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Initialize S3 client
 
@@ -12,23 +15,23 @@ import { db } from "../lib/pg.js"
 const POOL_CONFIG = {
   // 5 different pool types
   pool1: {
-    bucketName: 'jarvis',
+    bucketName: 'javis-agent',
     folderPrefix: 'pool1/'
   },
   pool2: {
-    bucketName: 'jarvis',
+    bucketName: 'javis-agent',
     folderPrefix: 'pool2/'
   },
   pool3: {
-    bucketName: 'jarvis',
+    bucketName: 'javis-agent',
     folderPrefix: 'pool3/'
   },
   pool4: {
-    bucketName: 'jarvis',
+    bucketName: 'javis-agent',
     folderPrefix: 'pool4/'
   },
   pool5: {
-    bucketName: 'jarvis',
+    bucketName: 'javis-agent',
     folderPrefix: 'pool5/'
   }
 };
@@ -53,13 +56,21 @@ const AGENT_TYPES = {
           { pool: 'pool3', defaultRate: 0.4 },
           { pool: 'pool4', defaultRate: 0.2 }
         ]
+      },
+      3: {
+        name: 'Premium Package',
+        availablePools: [
+          { pool: 'pool2', defaultRate: 0.4 },
+          { pool: 'pool3', defaultRate: 0.4 },
+          { pool: 'pool4', defaultRate: 0.2 }
+        ]
       }
     }
   },
   2: {
     name: 'Agent Type 2',
     packages: {
-      3: {
+      1: {
         name: 'Elite Package',
         availablePools: [
           { pool: 'pool3', defaultRate: 0.3 },
@@ -67,7 +78,15 @@ const AGENT_TYPES = {
           { pool: 'pool5', defaultRate: 0.4 }
         ]
       },
-      4: {
+      2: {
+        name: 'Standard Package',
+        availablePools: [
+          { pool: 'pool1', defaultRate: 0.4 },
+          { pool: 'pool2', defaultRate: 0.4 },
+          { pool: 'pool5', defaultRate: 0.2 }
+        ]
+      },
+      3: {
         name: 'Standard Package',
         availablePools: [
           { pool: 'pool1', defaultRate: 0.4 },
@@ -105,28 +124,36 @@ async function listAvailableImages(s3: AWS.S3, pool) {
 }
 
 async function loadUsedImages() {
-  const statement: QueryConfig = {
+  const statement = {
     name: "loadUsedImages",
     text: "SELECT * FROM mint_image_history",
-  }
+  };
 
   return await db.pool.query(statement)
-    .then((result) => result.rows)
+    .then((result) => {
+      return result.rows.reduce((obj, row) => {
+        const { imageName, ...rest } = row; // Tách imageName
+        obj[imageName] = rest; // Dùng imageName làm key
+        return obj;
+      }, {});
+    });
 }
 
-async function saveUsedImages(url, agentType) {
+async function saveUsedImages(imageName, url, agentType, packageType) {
   const query = `
     INSERT INTO mint_image_history
       (
+        "imageName",
         url,
-        agentType
+        "agentType",
+        "packageType"
       )
     VALUES
-      ($1, $2, $3)
+      ($1, $2, $3, $4)
     RETURNING id;
   `;
 
-  const values = [url, agentType];
+  const values = [imageName, url, agentType, packageType];
 
   try {
     await db.pool.query(query, values);
@@ -139,7 +166,7 @@ async function saveUsedImages(url, agentType) {
 async function selectImageFromPool(s3Config, agentId, packageId, customRates = null) {
   const s3Client = new AWS.S3(s3Config)
   // Get package configuration
-  const agent = AGENT_TYPES[agentId];
+  const agent = AGENT_TYPES[agentId].packages;
   const packageConfig = agent[packageId];
   if (!packageConfig) {
     throw new Error(`Invalid package agentType: ${agentId} or packageType: ${packageId}`);
@@ -195,13 +222,14 @@ async function selectImageFromPool(s3Config, agentId, packageId, customRates = n
   const selectedImage = availableImages[randomIndex];
   
   // Save updated used images
-  // await saveUsedImages(usedImages);
+  const url = `https://${POOL_CONFIG[selectedPool].bucketName}.s3.amazonaws.com/${selectedImage.key}`
+  await saveUsedImages(selectedImage.key, url, agentId, packageId);
   
   // Return the selected image info
   return {
     imageKey: selectedImage.key,
     pool: selectedPool,
-    url: `https://${POOL_CONFIG[selectedPool].bucketName}.s3.amazonaws.com/${selectedImage.key}`
+    url
   };
 }
 
