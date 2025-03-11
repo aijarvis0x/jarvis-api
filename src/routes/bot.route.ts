@@ -19,7 +19,7 @@ export default async (app: AppInstance) => {
   await configureFileUpload(app);
 
 
-  
+
   app.post("/upload-background", {
     schema: {
       tags: ["Bot"],
@@ -193,6 +193,7 @@ export default async (app: AppInstance) => {
             lowest_price,
             count_conversation,
             state,
+            owner
           } = bot;
           return reply.status(200).send({
             message: "OK",
@@ -213,6 +214,7 @@ export default async (app: AppInstance) => {
               lowest_price,
               count_conversation,
               state,
+              owner
             },
           });
         }
