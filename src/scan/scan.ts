@@ -21,7 +21,7 @@ const processEventBlock = async (
 ): Promise<void> => {
   try {
     console.log('\tScan from ', blocks[0], ' to ', blocks[blocks.length - 1])
-    await _processNftEvents(blocks, currentBlockNumber);
+    // await _processNftEvents(blocks, currentBlockNumber);
     await _processMarketEvents(blocks, currentBlockNumber)
   } catch (error: any) {
     console.log(error.error);
@@ -129,6 +129,8 @@ const _processMarketEvents = async (
     for (let i = 0; i < pastEvents.length; i++) {
 
       const event = pastEvents[i] as EventLog
+      console.log(event)
+
       switch (event.event) {
         case "Listed":
           await _listedNftEvent(event)
