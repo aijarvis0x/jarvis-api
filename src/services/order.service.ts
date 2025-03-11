@@ -35,8 +35,19 @@ export const findOrderByTx = async (txHash: string) => {
 export const findOrderByIdKiosk = async (botId: bigint, kiosk: string) => {
     const statement: QueryConfig = {
         name: "findOrderByIdKiosk",
-        text: "SELECT * FROM orders WHERE botId = $1 AND kiosk = $2 AND state = 'listed' LIMIT 1",
+        text: "SELECT * FROM orders WHERE bot_id = $1 AND kiosk = $2 AND state = 'listed' LIMIT 1",
         values: [botId, kiosk],
+    }
+
+    return await db.pool.query(statement)
+        .then((result) => result.rows?.[0] ?? null)
+}
+
+export const findOrderListedOfBot = async (botId: bigint) => {
+    const statement: QueryConfig = {
+        name: "findOrderListedOfBot",
+        text: "SELECT * FROM orders WHERE bot_id = $1 AND state = 'listed' LIMIT 1",
+        values: [botId],
     }
 
     return await db.pool.query(statement)
