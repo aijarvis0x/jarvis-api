@@ -89,8 +89,8 @@ const AGENT_TYPES = {
       3: {
         name: 'Standard Package',
         availablePools: [
-          { pool: 'pool1', defaultRate: 0.4 },
           { pool: 'pool2', defaultRate: 0.4 },
+          { pool: 'pool4', defaultRate: 0.4 },
           { pool: 'pool5', defaultRate: 0.2 }
         ]
       }
