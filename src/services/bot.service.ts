@@ -1,4 +1,4 @@
-import type { PoolClient, QueryConfig } from "pg"
+import type { Pool, PoolClient, QueryConfig } from "pg"
 import { db } from "../lib/pg.js"
 import { BotState } from "../constants.js"
 import { AWS_REGION, AWS_SQS_CREATE_AI_AGENT, MINT_AI_FEE } from "../env.js"
@@ -399,7 +399,7 @@ export const updateBotOwner = async (props: {
 };
 
 
-export const updateBotLastestActOnchain = async (botId: bigint, lastActOn: bigint) => {
+export const updateBotLastestActOnchain = async (botId: bigint, lastActOn: bigint, pool: PoolClient | Pool = db.pool) => {
   const query = `
     UPDATE bots
     SET lastest_act = $1,
@@ -410,7 +410,7 @@ export const updateBotLastestActOnchain = async (botId: bigint, lastActOn: bigin
   const values = [lastActOn, botId];
 
   try {
-    await db.pool.query(query, values);
+    await pool.query(query, values);
   } catch (error) {
     throw error;
   }

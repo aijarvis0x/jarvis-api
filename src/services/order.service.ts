@@ -1,5 +1,5 @@
 
-import { QueryConfig } from "pg";
+import { PoolClient, QueryConfig } from "pg";
 import { db } from "../lib/pg.js";
 import { OrderState } from "../constants.js";
 
@@ -45,11 +45,9 @@ export const findOrderByIdKiosk = async (botId: bigint, kiosk: string) => {
 
 
 
-export const createOrder = async (params: CreateOrderParams) => {
-    const client = await db.pool.connect();
-    try {
-        await client.query('BEGIN');
+export const createOrder = async (pool: PoolClient, params: CreateOrderParams) => {
 
+    try{
         const insertQuery = `
             INSERT INTO orders (
                 order_id, seller_id, seller_address, tag, sub_tag, nft_id, price, fee, currency, buyer_id, buyer_address, state, created_at, updated_at, tx_hash, bot_id, lastest_act
@@ -75,20 +73,17 @@ export const createOrder = async (params: CreateOrderParams) => {
             params.confirmedAt
         ];
 
-        const result = await client.query(insertQuery, values);
-        await client.query('COMMIT');
+        const result = await pool.query(insertQuery, values);
+
 
         return result.rows[0];
     } catch (error) {
-        await client.query('ROLLBACK');
         console.error('Error creating order:', error);
         throw error;
-    } finally {
-        client.release();
     }
 }
 
-export const cancelOrder = async (orderId: bigint, txHash: string, confirmedAt: bigint, owner: string, userId: bigint) => {
+export const cancelOrder = async (pool: PoolClient, orderId: bigint, txHash: string, confirmedAt: bigint, owner: string, userId: bigint) => {
     const updateQuery = `
         UPDATE orders
         SET state = $1, updated_at = NOW(), lastest_act = $2, tx_hash_delist = $3, seller_address = $4, seller_id = $5
@@ -97,10 +92,10 @@ export const cancelOrder = async (orderId: bigint, txHash: string, confirmedAt: 
     `;
     const values = [OrderState.Cancelled, confirmedAt, txHash, owner, userId, orderId];
 
-    return await db.pool.query(updateQuery, values);
+    return await pool.query(updateQuery, values);
 }
 
-export const buyOrder = async (orderId: bigint, txHash: string, confirmedAt: bigint, buyer: string, buyerId: bigint) => {
+export const buyOrder = async (pool: PoolClient, orderId: bigint, txHash: string, confirmedAt: bigint, buyer: string, buyerId: bigint) => {
     const updateQuery = `
         UPDATE orders
         SET state = $1, updated_at = NOW(), lastest_act = $2, sold_at = $3, tx_hash_sold = $4, buyer_address = $5, buyer_id = $6
@@ -110,7 +105,7 @@ export const buyOrder = async (orderId: bigint, txHash: string, confirmedAt: big
     const values = [OrderState.Sold, confirmedAt, confirmedAt, txHash, buyer, buyerId, orderId];
 
 
-    return await db.pool.query(updateQuery, values);
+    return await pool.query(updateQuery, values);
 }
 
 export const updateOrderState = async (nftId: string, kiosk: string, newState: string) => {
