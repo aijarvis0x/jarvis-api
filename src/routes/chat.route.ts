@@ -33,7 +33,7 @@ export default async (app: AppInstance) => {
 
         return reply.status(200).send({
           message: "OK",
-          data: conversation
+          data: {...conversation, response: "Hello, there!"}
         })
       } catch (error) {
         console.log(error)
