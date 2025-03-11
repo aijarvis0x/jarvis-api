@@ -141,13 +141,13 @@ model Order {
   sellerAddress       String      @map("seller_address")
   buyerAddress        String?     @map("buyer_address")
 
-  tag                 String
+  tag                 String?
   subTag              String?     @map("sub_tag")
 
   nftId               String      @map("nft_id")
   price               BigInt      @map("price")
   fee                 BigInt?
-  currency            String
+  currency            String?
   state               OrderState
 
   botId               BigInt     @map("bot_id")   // Foreign Key Added
