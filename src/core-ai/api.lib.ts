@@ -6,7 +6,7 @@ import { AdjectivesType, BotSettingMode, ModelProvider, PluginType, VoiceType } 
 
 export const client = new HttpClient({
     baseURL: SERVER_5SON_AI_CORE,
-    timeout: 10000,
+    timeout: 100000,
     headers: {
         "Content-Type": "application/json",
         "Authorization": process.env.AUTH_JARVIS_TOKEN

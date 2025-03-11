@@ -31,9 +31,9 @@ export const createConversation = async (
       throw new Error("Bot not found")
     }
     // TODO: remove it when demo done
-    else if (bot.state !== BotState.Created) {
-      throw new Error("Bot is not created")
-    }
+    // else if (bot.state !== BotState.Created) {
+    //   throw new Error("Bot is not created")
+    // }
 
     const query = `
 			INSERT INTO conversations (
@@ -76,9 +76,9 @@ export const sendMessage = async (
     //   userId: userId,
     //   roomId: conversationId,
     // });
-    const response = await client.post(`e61b079d-5226-06e9-9763-a33094aa8d82/message`, {
+    const response = await client.post(`/e61b079d-5226-06e9-9763-a33094aa8d82/message`, {
       text: text,
-      userId: userId,
+      userId: String(userId),
       roomId: conversationId,
     });
 
