@@ -8,6 +8,8 @@ import { MintNftEvent, TxStatus } from "../utils/monad-utils.js"
 import { multiConnectionTransaction } from "../lib/db/transaction.js"
 import { findUserByAddress } from "./users.service.js"
 import { EventLog } from 'web3';
+import { selectImageFromPool } from "../utils/s3-pool.js"
+import { s3Config } from "../config/s3-config.js"
 
 
 export type BotInfo = {
@@ -596,8 +598,9 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
     }
 
     //@todo random nft
+    const {url: avatarUrl} = await selectImageFromPool(s3Config, params.agentType, params.packageId)
     // const avatarUrl = `https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/avatars/${params.nftId}.jpeg`;
-    const avatarUrl = `https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/avatars/example.jpeg`;
+    // const avatarUrl = `https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/avatars/example.jpeg`;
     const description = "No description"
     const attributes = JSON.stringify([
       {

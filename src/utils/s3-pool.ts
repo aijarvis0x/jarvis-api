@@ -61,8 +61,8 @@ const AGENT_TYPES = {
         name: 'Premium Package',
         availablePools: [
           { pool: 'pool2', defaultRate: 0.4 },
-          { pool: 'pool3', defaultRate: 0.4 },
-          { pool: 'pool4', defaultRate: 0.2 }
+          { pool: 'pool4', defaultRate: 0.4 },
+          { pool: 'pool5', defaultRate: 0.2 }
         ]
       }
     }
@@ -163,7 +163,7 @@ async function saveUsedImages(imageName, url, agentType, packageType) {
 }
 
 // Helper function to select an image from a pool based on rates
-async function selectImageFromPool(s3Config, agentId, packageId, customRates = null) {
+export async function selectImageFromPool(s3Config, agentId, packageId, customRates = null) {
   const s3Client = new AWS.S3(s3Config)
   // Get package configuration
   const agent = AGENT_TYPES[agentId].packages;
@@ -236,10 +236,4 @@ async function selectImageFromPool(s3Config, agentId, packageId, customRates = n
 // Register routes
 
 
-// Export the selectImageFromPool function for use in other modules
-module.exports = {
-
-  selectImageFromPool,
-
-};
 
