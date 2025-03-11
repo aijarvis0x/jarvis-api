@@ -16,7 +16,7 @@ export const MintNftContract = new web3.eth.Contract(
 
 export const MarketContract = new web3.eth.Contract(
     MarketABI,
-    String(process.env.NFT_CONTRACT_ADDRESS)
+    String(process.env.MARKET_CONTRACT_ADDRESS)
 );
 
 // Hàm trả về URL của giao dịch
