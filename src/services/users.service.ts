@@ -1,4 +1,4 @@
-import type { QueryConfig } from "pg"
+import type { Pool, PoolClient, QueryConfig } from "pg"
 import { db } from "../lib/pg.js"
 
 export type TelegramId = string | number
@@ -22,7 +22,7 @@ export async function loggingUser(
 }
 
 export async function findUserByAddress(
-  address: string
+  address: string, pool: PoolClient | Pool = db.pool
 ) {
   const statement: QueryConfig = {
     name: "findUserByAddress",
@@ -30,12 +30,12 @@ export async function findUserByAddress(
     values: [address],
   }
 
-  return await db.pool.query(statement)
+  return await pool.query(statement)
     .then((result) => result.rows?.[0] ?? null)
 }
 
 export const changeNameOfUser = async (userId: bigint, newName: string) => {
-  
+
   const query = `
     UPDATE users
     SET name = $1,

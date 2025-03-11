@@ -492,7 +492,7 @@ export const confirmedMintBot = async (
           const [pgClient] = clients;
 
           //check transaction existed?
-          let log = await createTransaction({
+          let log = await createTransaction(pgClient, {
             txHash: eventLog?.transactionHash,
             status: TxStatus.CONFIRMED,
             sender: eventLog?.returnValues?.owner,
@@ -517,12 +517,13 @@ export const confirmedMintBot = async (
             throw new Error("transaction existed. Tx: " + String(eventLog?.transactionHash))
           }
 
-          const owner = await findUserByAddress(event.owner)
+          const owner = await findUserByAddress(event.owner, pgClient)
 
           if (!owner) throw new Error("Owner does't exist")
 
           //create bot
           const botId = await createBot(pgClient, { nftId: String(event.tokenId), owner: event.owner, ownerId: BigInt(owner.id), agentType: Number(event.agentType), packageId: Number(event.packageId), blockNumber: BigInt(eventLog.blockNumber ?? 0) })
+          console.log('botId = ', botId)
 
           //add to SQS -> gen agent AI
           await sendMessage(AWS_SQS_CREATE_AI_AGENT, JSON.stringify({ xid: Number(botId) }))
@@ -540,7 +541,7 @@ export const confirmedMintBot = async (
 }
 
 
-export const createTransaction = async (params: {
+export const createTransaction = async (pool: PoolClient,params: {
   txHash,
   status,
   sender,
@@ -565,7 +566,7 @@ export const createTransaction = async (params: {
 
 
 
-    await db.pool.query(insertQuery, [
+    await pool.query(insertQuery, [
       params.txHash,
       params.status,
       params.sender,
@@ -599,6 +600,7 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
 
     //@todo random nft
     const {url: avatarUrl} = await selectImageFromPool(s3Config, params.agentType, params.packageId)
+    console.log(`avatarUrl`, avatarUrl)
     // const avatarUrl = `https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/avatars/${params.nftId}.jpeg`;
     // const avatarUrl = `https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/avatars/example.jpeg`;
     const description = "No description"
@@ -649,7 +651,7 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
           INSERT INTO bots
             (nft_id, user_id, owner, avatar, description, attributes, setting_mode, state, created_at, updated_at, lastest_act)
           VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW(), )
+            ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW(), $9)
           RETURNING id;
         `;
     const values = [
@@ -661,6 +663,7 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
       attributes,
       SETTING_MODE_DEFAUT,
       BotState.WaitingGenerate,
+      params.blockNumber
     ];
 
     const result = await pool.query(insertQuery, values);
@@ -670,6 +673,7 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
     return BigInt(newBotId);
 
   } catch (error) {
+    console.log(`craete bot error `, error)
     throw error
   }
 }
