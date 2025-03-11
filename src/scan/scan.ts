@@ -1,10 +1,11 @@
 import { CronJob } from 'cron';
-import { MintNftContract, web3 } from '../monad/rcp-monad.js';
+import { MarketContract, MintNftContract, web3 } from '../monad/rcp-monad.js';
 import { db } from '../lib/pg.js';
 import { MintNftEvent, TxStatus } from '../utils/monad-utils.js';
 import { EventLog } from 'web3';
 import dayjs from 'dayjs';
 import { confirmedMintBot } from '../services/bot.service.js';
+import { confirmItemCancelledMarket, confirmItemListedMarket, confirmItemSoldMarket } from '../services/market.service.js';
 
 const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => {
@@ -20,62 +21,15 @@ const processEventBlock = async (
 ): Promise<void> => {
   try {
     console.log('\tScan from ', blocks[0], ' to ', blocks[blocks.length - 1])
-    await _claimFundEvent(blocks, currentBlockNumber);
-    await sleep(1000);
+    await _processNftEvents(blocks, currentBlockNumber);
+    await _processMarketEvents(blocks, currentBlockNumber)
   } catch (error: any) {
     console.log(error.error);
   }
 };
 
-export const createTransaction = async (params: {
-  txHash,
-  status,
-  sender,
-  recipient,
-  nonce,
-  contractAddress,
-  blockNumber,
-  logIndex,
-  value,
-  events,
-  logs,
-  confirmedAt,
-}) => {
-  try {
-    const insertQuery = `
-      INSERT INTO transactions
-        (tx_hash, status, sender, recipient, nonce, log_index, contract_address, block_number, value, events, logs, confirmed_at)
-      VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-      RETURNING *;
-    `;
 
-
-
-    await db.pool.query(insertQuery, [
-      params.txHash,
-      params.status,
-      params.sender,
-      params.recipient,
-      params.nonce,
-      params.logIndex,
-      params.contractAddress,
-      params.blockNumber,
-      params.value,
-      params.events,
-      params.logs,
-      params.confirmedAt,
-    ]);
-
-    return true
-
-  } catch (error) {
-    console.log(error)
-    return false
-  }
-}
-
-const _claimFundEvent = async (
+const _processNftEvents = async (
   blocks: BlockRange,
   currentBlockNumber?: number
 ): Promise<void> => {
@@ -86,7 +40,7 @@ const _claimFundEvent = async (
       fromBlock: blocks[0],
       toBlock: blocks[1]
     })
-    console.log(`pastEvents`, pastEvents.length)
+    console.log(`_processNftEvents`, pastEvents.length)
 
 
 
@@ -108,8 +62,91 @@ const _claimFundEvent = async (
 
     }
 
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+async function _listedNftEvent(event: EventLog) {
+  try {
+    console.log(event)
+    //check event exist
+    if (!(await isTxNotExist(event.transactionHash, event.logIndex))) {
+      return console.log(`[_listedNftEvent] Tx ${event.transactionHash} existed`)
+    }
+    await confirmItemListedMarket(event)
+  } catch (error) {
+    throw error
+  }
+}
+
+async function _soldNftEvent(event: EventLog) {
+  try {
+    console.log(event)
+    //check event exist
+    if (!(await isTxNotExist(event.transactionHash, event.logIndex))) {
+      return console.log(`[_soldNftEvent] Tx ${event.transactionHash} existed`)
+    }
+    await confirmItemSoldMarket(event)
+  } catch (error) {
+    throw error
+  }
+}
+
+async function _cancelledNftEvent(event: EventLog) {
+  try {
+    console.log(event)
+    //check event exist
+    if (!(await isTxNotExist(event.transactionHash, event.logIndex))) {
+      return console.log(`[_cancelledNftEvent] Tx ${event.transactionHash} existed`)
+    }
+    await confirmItemCancelledMarket(event)
+  } catch (error) {
+    throw error
+  }
+}
 
 
+
+
+const _processMarketEvents = async (
+  blocks: BlockRange,
+  currentBlockNumber?: number
+): Promise<void> => {
+  try {
+    const pastEvents = await MarketContract.getPastEvents('allEvents', {
+      fromBlock: blocks[0],
+      toBlock: blocks[1]
+    })
+    console.log(`_processMarketEvents`, pastEvents.length)
+
+
+
+    if (pastEvents == null || pastEvents.length == 0) {
+      return
+    }
+
+    for (let i = 0; i < pastEvents.length; i++) {
+
+      const event = pastEvents[i] as EventLog
+      switch (event.event) {
+        case "Listed":
+          await _listedNftEvent(event)
+          break;
+
+        case "Sold":
+          await _soldNftEvent(event)
+          break;
+
+        case "Cancelled":
+          await _cancelledNftEvent(event)
+          break;
+
+        default:
+          break;
+      }
+
+    }
 
 
   } catch (error) {
@@ -141,8 +178,8 @@ const mintEvent = async (event: EventLog) => {
   console.log(event)
 
   //check event exist
-  if(!(await isTxNotExist(event.transactionHash, event.logIndex))){
-    return console.log(`Tx ${event.transactionHash} existed`)
+  if (!(await isTxNotExist(event.transactionHash, event.logIndex))) {
+    return console.log(`[mintEvent] Tx ${event.transactionHash} existed`)
   }
 
   // confirm mint bot
@@ -150,7 +187,7 @@ const mintEvent = async (event: EventLog) => {
 
 }
 
-let blockStart: number = 7096250;
+let blockStart: number = Number(process.env.START_BLOCK) ?? 7096250;
 let delayBlockNumber: number = 2;
 
 let paused: boolean = false;

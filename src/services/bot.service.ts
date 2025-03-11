@@ -8,11 +8,9 @@ import { MintNftEvent, TxStatus } from "../utils/monad-utils.js"
 import { multiConnectionTransaction } from "../lib/db/transaction.js"
 import { findUserByAddress } from "./users.service.js"
 import { EventLog } from 'web3';
-import { createTransaction } from "../scan/scan.js"
 import { selectImageFromPool } from "../utils/s3-pool.js"
 import { s3Config } from "../config/s3-config.js"
 
-const MINT_AI_REQ_EXP = 86400000
 
 export type BotInfo = {
   id: string,
@@ -239,11 +237,11 @@ export const findBotByIdWithoutOwner = async (botId: BotId) => {
     .then((result) => result.rows?.[0] ?? null)
 }
 
-export const findBotByNftId = async (botObjId: string, confirmedAt: Date | null) => {
+export const findBotByNftId = async (botObjId: string, confirmedAt: bigint) => {
   const statement: QueryConfig = {
     name: "findBotByNftId",
     text: "SELECT * FROM bots WHERE nft_id = $1 AND lastest_act < $2 LIMIT 1",
-    values: [botObjId, dayjs.utc(confirmedAt).toDate()],
+    values: [botObjId, confirmedAt],
   }
 
   return await db.pool.query(statement)
@@ -261,11 +259,11 @@ export const findBotByOnlyNftId = async (botObjId: string) => {
     .then((result) => result.rows?.[0] ?? null)
 }
 
-export const findBotDelistableByNftId = async (botObjId: string, confirmedAt: Date | null) => {
+export const findBotDelistableByNftId = async (botObjId: string, confirmedAt: bigint) => {
   const statement: QueryConfig = {
     name: "findBotDelistableByNftId",
     text: "SELECT * FROM bots WHERE nft_id = $1 AND lastest_act <= $2 LIMIT 1",
-    values: [botObjId, dayjs.utc(confirmedAt).toDate()],
+    values: [botObjId, confirmedAt],
   }
 
   return await db.pool.query(statement)
@@ -401,7 +399,7 @@ export const updateBotOwner = async (props: {
 };
 
 
-export const updateBotLastestActOnchain = async (botId: bigint, lastActOn: Date | null) => {
+export const updateBotLastestActOnchain = async (botId: bigint, lastActOn: bigint) => {
   const query = `
     UPDATE bots
     SET lastest_act = $1,
@@ -524,7 +522,7 @@ export const confirmedMintBot = async (
           if (!owner) throw new Error("Owner does't exist")
 
           //create bot
-          const botId = await createBot(pgClient, { nftId: String(event.tokenId), owner: event.owner, ownerId: BigInt(owner.id), agentType: Number(event.agentType), packageId: Number(event.packageId) })
+          const botId = await createBot(pgClient, { nftId: String(event.tokenId), owner: event.owner, ownerId: BigInt(owner.id), agentType: Number(event.agentType), packageId: Number(event.packageId), blockNumber: BigInt(eventLog.blockNumber ?? 0) })
 
           //add to SQS -> gen agent AI
           await sendMessage(AWS_SQS_CREATE_AI_AGENT, JSON.stringify({ xid: Number(botId) }))
@@ -541,7 +539,56 @@ export const confirmedMintBot = async (
   }
 }
 
-export const createBot = async (pool: PoolClient, params: { nftId: string, ownerId: bigint, owner: string, agentType: number, packageId: number }): Promise<bigint> => {
+
+export const createTransaction = async (params: {
+  txHash,
+  status,
+  sender,
+  recipient,
+  nonce,
+  contractAddress,
+  blockNumber,
+  logIndex,
+  value,
+  events,
+  logs,
+  confirmedAt,
+}) => {
+  try {
+    const insertQuery = `
+      INSERT INTO transactions
+        (tx_hash, status, sender, recipient, nonce, log_index, contract_address, block_number, value, events, logs, confirmed_at)
+      VALUES
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING *;
+    `;
+
+
+
+    await db.pool.query(insertQuery, [
+      params.txHash,
+      params.status,
+      params.sender,
+      params.recipient,
+      params.nonce,
+      params.logIndex,
+      params.contractAddress,
+      params.blockNumber,
+      params.value,
+      params.events,
+      params.logs,
+      params.confirmedAt,
+    ]);
+
+    return true
+
+  } catch (error) {
+    console.log(error)
+    return false
+  }
+}
+
+export const createBot = async (pool: PoolClient, params: { nftId: string, ownerId: bigint, owner: string, agentType: number, packageId: number, blockNumber: bigint }): Promise<bigint> => {
 
   try {
     const checkQuery = 'SELECT id FROM bots WHERE nft_id = $1';
@@ -602,7 +649,7 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
           INSERT INTO bots
             (nft_id, user_id, owner, avatar, description, attributes, setting_mode, state, created_at, updated_at, lastest_act)
           VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW(), NOW())
+            ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW(), )
           RETURNING id;
         `;
     const values = [

@@ -30,12 +30,12 @@ export enum BotState {
 }
 
 export enum Currency {
-  SUI = 'SUI',
+  MON = 'MON',
   _5SON = 'SON',
 }
 
 export enum OrderState {
   Listed = 'listed',
   Cancelled = 'cancelled',
-  Purchased = 'purchased'
+  Sold = 'sold'
 }

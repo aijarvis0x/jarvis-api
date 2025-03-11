@@ -42,7 +42,7 @@ CREATE TABLE "bots" (
     "x" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "lastest_act" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastest_act" BIGINT,
 
     CONSTRAINT "bots_pkey" PRIMARY KEY ("id")
 );
@@ -95,9 +95,10 @@ CREATE TABLE "categories" (
 -- CreateTable
 CREATE TABLE "orders" (
     "id" BIGSERIAL NOT NULL,
+    "order_id" TEXT NOT NULL,
     "tx_hash" TEXT NOT NULL,
     "tx_hash_delist" TEXT,
-    "tx_hash_purchase" TEXT,
+    "tx_hash_sold" TEXT,
     "seller_id" BIGINT NOT NULL,
     "buyer_id" BIGINT,
     "seller_address" TEXT NOT NULL,
@@ -105,7 +106,6 @@ CREATE TABLE "orders" (
     "tag" TEXT NOT NULL,
     "sub_tag" TEXT,
     "nft_id" TEXT NOT NULL,
-    "kiosk" TEXT NOT NULL,
     "price" BIGINT NOT NULL,
     "fee" BIGINT,
     "currency" TEXT NOT NULL,
@@ -126,6 +126,7 @@ CREATE TABLE "transactions" (
     "sender" VARCHAR(199),
     "recipient" VARCHAR(199),
     "nonce" BIGINT,
+    "log_index" BIGINT,
     "contract_address" VARCHAR(199),
     "block_number" BIGINT,
     "value" BIGINT,
@@ -157,6 +158,19 @@ CREATE TABLE "favorite_bot" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "favorite_bot_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "mint_image_history" (
+    "id" BIGSERIAL NOT NULL,
+    "imageName" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "agentType" TEXT NOT NULL,
+    "packageType" TEXT NOT NULL,
+    "attributes" JSONB,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "mint_image_history_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -208,7 +222,7 @@ CREATE INDEX "orders_bot_id_idx" ON "orders"("bot_id");
 CREATE UNIQUE INDEX "orders_tx_hash_key" ON "orders"("tx_hash");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "transactions_tx_hash_key" ON "transactions"("tx_hash");
+CREATE UNIQUE INDEX "orders_order_id_key" ON "orders"("order_id");
 
 -- CreateIndex
 CREATE INDEX "transactions_status_idx" ON "transactions"("status");

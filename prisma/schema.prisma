@@ -65,7 +65,7 @@ model Bot {
   x                   String?
   createdAt           DateTime    @default(now()) @map("created_at")
   updatedAt           DateTime    @default(now()) @map("updated_at")
-  lastestAct          DateTime    @default(now()) @map("lastest_act")
+  lastestAct          BigInt?     @map("lastest_act")
 
 
   Orders              Order[]     @relation("BotOrders")  // Added Relation
@@ -132,9 +132,10 @@ model Category {
 
 model Order {
   id                  BigInt      @id @default(autoincrement())
+  orderId             String      @map("order_id")
   txHash              String      @map("tx_hash")
   txHashDelist        String?     @map("tx_hash_delist")
-  txHashPurchase      String?     @map("tx_hash_purchase")
+  txHashPurchase      String?     @map("tx_hash_sold")
   sellerId            BigInt      @map("seller_id")
   buyerId             BigInt?     @map("buyer_id")
   sellerAddress       String      @map("seller_address")
@@ -144,7 +145,6 @@ model Order {
   subTag              String?     @map("sub_tag")
 
   nftId               String      @map("nft_id")
-  kiosk               String      @map("kiosk")
   price               BigInt      @map("price")
   fee                 BigInt?
   currency            String
@@ -166,6 +166,7 @@ model Order {
   @@index([buyerAddress])
   @@index([botId])                 // Index for faster queries
   @@unique([txHash])
+  @@unique([orderId])
   @@map("orders")
 }
 
