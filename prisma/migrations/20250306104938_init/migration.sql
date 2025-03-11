@@ -97,7 +97,7 @@ CREATE TABLE "orders" (
     "id" BIGSERIAL NOT NULL,
     "tx_hash" TEXT NOT NULL,
     "tx_hash_delist" TEXT,
-    "tx_hash_purchase" TEXT,
+    "tx_hash_sold" TEXT,
     "seller_id" BIGINT NOT NULL,
     "buyer_id" BIGINT,
     "seller_address" TEXT NOT NULL,
