@@ -52,9 +52,9 @@ export const createOrder = async (params: CreateOrderParams) => {
 
         const insertQuery = `
             INSERT INTO orders (
-                order_id, seller_id, seller_address, tag, sub_tag, nft_id, price, fee, currency, buyer_id, buyer_address, state, created_at, updated_at, tx_hash, bot_id
+                order_id, seller_id, seller_address, tag, sub_tag, nft_id, price, fee, currency, buyer_id, buyer_address, state, created_at, updated_at, tx_hash, bot_id, lastest_act
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'listed', NOW(), $12, $13, $14
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'listed', NOW(), NOW(), $12, $13, $14
             ) RETURNING *;
         `;
 
@@ -70,9 +70,9 @@ export const createOrder = async (params: CreateOrderParams) => {
             params.currency,
             params.buyerId || null,
             params.buyerAddress || null,
-            params.confirmedAt,
             params.txHash,
-            params.botId
+            params.botId,
+            params.confirmedAt
         ];
 
         const result = await client.query(insertQuery, values);
@@ -91,7 +91,7 @@ export const createOrder = async (params: CreateOrderParams) => {
 export const cancelOrder = async (orderId: bigint, txHash: string, confirmedAt: bigint, owner: string, userId: bigint) => {
     const updateQuery = `
         UPDATE orders
-        SET state = $1, updated_at = $2, tx_hash_delist = $3, seller_address = $4, seller_id = $5
+        SET state = $1, updated_at = NOW(), lastest_act = $2, tx_hash_delist = $3, seller_address = $4, seller_id = $5
         WHERE order_id = $6 AND state = 'listed'
         RETURNING *;
     `;
@@ -103,11 +103,11 @@ export const cancelOrder = async (orderId: bigint, txHash: string, confirmedAt: 
 export const buyOrder = async (orderId: bigint, txHash: string, confirmedAt: bigint, buyer: string, buyerId: bigint) => {
     const updateQuery = `
         UPDATE orders
-        SET state = $1, updated_at = $2, sold_at = $2, tx_hash_sold = $3, buyer_address = $4, buyer_id = $5
+        SET state = $1, updated_at = NOW(), lastest_act = $2, sold_at = $3, tx_hash_sold = $4, buyer_address = $5, buyer_id = $6
         WHERE orderId = $6 AND state = 'listed'
         RETURNING *;
     `;
-    const values = [OrderState.Sold, confirmedAt, txHash, buyer, buyerId, orderId];
+    const values = [OrderState.Sold, confirmedAt, confirmedAt, txHash, buyer, buyerId, orderId];
 
 
     return await db.pool.query(updateQuery, values);

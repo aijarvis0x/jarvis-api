@@ -158,7 +158,9 @@ model Order {
 
   createdAt           DateTime    @default(now()) @map("created_at")
   updatedAt           DateTime    @default(now()) @map("updated_at")
-  soldAt              DateTime?   @map("sold_at")
+  soldAt              BigInt?     @map("sold_at")
+  lastestAct          BigInt?     @map("lastest_act")
+
 
   @@index([sellerId])
   @@index([buyerId])
