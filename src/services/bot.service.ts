@@ -690,9 +690,9 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
 
     const insertQuery = `
           INSERT INTO bots
-            (category_ids, name, background, nft_id, user_id, owner, avatar, description, attributes, setting_mode, state, created_at, updated_at, lastest_act)
+            (category_ids, name, background, nft_id, user_id, owner, avatar, description, attributes, state, created_at, updated_at, lastest_act)
           VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW(), $12)
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW(), $11)
           RETURNING id;
         `;
 
@@ -707,7 +707,6 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
       avatarUrl,
       description,
       attributes,
-      SETTING_MODE_DEFAUT,
       BotState.WaitingGenerate,
       params.blockNumber
     ];

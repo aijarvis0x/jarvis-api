@@ -185,7 +185,7 @@ export default async (app: AppInstance) => {
         if (!!userId && userId == bot.user_id) {
           return reply.status(200).send({
             message: "OK",
-            data: { ...bot, order: orderData },
+            data: { ...bot, order: orderData, setting_mode: null },
           });
         } else {
           let {
