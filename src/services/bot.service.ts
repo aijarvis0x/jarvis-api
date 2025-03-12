@@ -679,12 +679,20 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
       { rare: covertType(type) }
     ])
 
+    const backgrounds = [
+      "https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/backgrounds/Knight_2.png",
+      "https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/backgrounds/Knight.png",
+      "https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/backgrounds/King.png"
+    ]
+
+    const background = backgrounds[Math.round(Math.random() * 6) %3]
+
 
     const insertQuery = `
           INSERT INTO bots
-            (category_ids, name, nft_id, user_id, owner, avatar, description, attributes, setting_mode, state, created_at, updated_at, lastest_act)
+            (category_ids, name, background, nft_id, user_id, owner, avatar, description, attributes, setting_mode, state, created_at, updated_at, lastest_act)
           VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW(), $11)
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW(), $12)
           RETURNING id;
         `;
 
@@ -692,6 +700,7 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
     const values = [
       JSON.stringify([params.agentType]),
       name,
+      background,
       params.nftId,
       params.ownerId,
       params.owner,
