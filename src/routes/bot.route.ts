@@ -193,8 +193,7 @@ export default async (app: AppInstance) => {
             lowest_price,
             count_conversation,
             state,
-            owner,
-            category_ids
+            owner
           } = bot;
           return reply.status(200).send({
             message: "OK",
@@ -215,8 +214,7 @@ export default async (app: AppInstance) => {
               lowest_price,
               count_conversation,
               state,
-              owner,
-              category_ids
+              owner
             },
           });
         }
