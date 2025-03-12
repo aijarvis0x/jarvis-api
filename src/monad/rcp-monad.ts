@@ -2,7 +2,7 @@ import { Web3 } from 'web3';
 import { MintNftABI } from './abi/mint-nft.abi.js';
 import { MarketABI } from './abi/market.abi.js';
 
-const MONAD_RPC = process.env.CHAIN_NETWORK === "mainnet" ? "https://rpc.monad.xyz" : "https://testnet-rpc.monad.xyz";
+const MONAD_RPC = process.env.CHAIN_NETWORK === "mainnet" ? "https://rpc.monad.xyz" : (process.env.MONAD_TESTNET_NODE ?? "https://testnet-rpc.monad.xyz");
 const NETWORK_NAME = "Monad Testnet";
 
 // Khởi tạo Web3 instance bằng cách truyền trực tiếp RPC URL
