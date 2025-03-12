@@ -305,6 +305,7 @@ export const getListBots = async (userId: bigint, page: number, limit: number) =
   orders.map(ele => {
     if(ele.state == OrderState.Listed) {
       OrdersMap[ele?.bot_id] = {
+        orderId: ele?.order_id,
         price: ele?.price,
         state: OrderState.Listed
       }

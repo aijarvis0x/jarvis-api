@@ -179,10 +179,11 @@ export default async (app: AppInstance) => {
         let price = order?.price
 
 
+
         if (!!userId && userId == bot.user_id) {
           return reply.status(200).send({
             message: "OK",
-            data: { ...bot, price },
+            data: { ...bot, price, orderId: order?.order_id },
           });
         } else {
           let {
@@ -223,7 +224,8 @@ export default async (app: AppInstance) => {
               count_conversation,
               state,
               owner,
-              price
+              price,
+              orderId: order?.order_id
             },
           });
         }
