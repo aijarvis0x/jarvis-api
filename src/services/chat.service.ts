@@ -78,9 +78,9 @@ export const sendMessage = async (
     //   roomId: conversationId,
     // });
     const categoryMapping = {
-      "2": "95654c56-888a-0d17-bc32-57df8d1dedc3",
+      "0": "261a5a1d-75b0-0a2c-9fd9-da7e1ad06932",
       "1": "e1fc0723-cc1c-0b66-9b71-15a5303c33a3",
-      "3": "261a5a1d-75b0-0a2c-9fd9-da7e1ad06932",
+      "2": "95654c56-888a-0d17-bc32-57df8d1dedc3"
     }
     const agentId = categoryMapping[categoryId];
     if (!agentId) {
