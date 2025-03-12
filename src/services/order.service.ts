@@ -11,10 +11,10 @@ export interface CreateOrderParams {
     sellerAddress: string;
     tag: string;
     nftId: string;
-    price: bigint;
+    price: string;
     currency: string;
     subTag?: string;
-    fee?: number;
+    fee?: string;
     buyerId?: number;
     buyerAddress?: string;
     txHash: string;
@@ -155,7 +155,7 @@ export const updateBotState = async (nftId: string, newState: string) => {
     return await db.pool.query(updateQuery, values);
 }
 
-export const updatePriceOrder = async (pool: PoolClient, orderId: bigint, confirmedAt: bigint, newPrice: bigint) => {
+export const updatePriceOrder = async (pool: PoolClient, orderId: bigint, confirmedAt: bigint, newPrice: string) => {
     const updateQuery = `
         UPDATE orders
         SET price = $1, updated_at = NOW(), lastest_act = $2, state = 'listed'

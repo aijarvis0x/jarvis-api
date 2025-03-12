@@ -55,7 +55,7 @@ model Bot {
   lowestPrice         BigInt?     @map("lowest_price")
   countConversation   BigInt?     @map("count_conversation")
 
-  fee                 BigInt?
+  fee                 String?
   expiredTime         DateTime?   @map("expired_time")
   txHash              String?     @map("tx_hash") @db.VarChar(66)
 
@@ -145,8 +145,8 @@ model Order {
   subTag              String?     @map("sub_tag")
 
   nftId               String      @map("nft_id")
-  price               BigInt      @map("price")
-  fee                 BigInt?
+  price               String      @map("price")
+  fee                 String?
   currency            String?
   state               OrderState
 

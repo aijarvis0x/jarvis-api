@@ -22,7 +22,7 @@ const csrfPlugin: FastifyPluginAsync = async (fastify) => {
       sameSite: "none",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      domain: process.env.NODE_ENV === "production" ? ".birds.dog" : undefined,
+      domain: process.env.NODE_ENV === "production" ? ".aijarvis.xyz" : undefined,
     })
 
     done()

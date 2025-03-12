@@ -54,7 +54,7 @@ export const confirmItemListedMarket = async (
                         listingId: String(event?.returnValues?.listingId as bigint),
                         nftContract: event.returnValues.nftContract,
                         tokenId: String(event?.returnValues?.tokenId as bigint),
-                        price: String(event?.returnValues?.price as bigint),
+                        price: String(event?.returnValues?.price),
                         paymentToken: event.returnValues.paymentToken,
                     },
                     logs: { eventName: "Listed" },
@@ -77,8 +77,8 @@ export const confirmItemListedMarket = async (
                     tag: bot.tag,
                     subTag: bot.sub_tag,
                     nftId: bot.nft_id,
-                    price: BigInt(event?.returnValues?.price as bigint),
-                    fee: 0,
+                    price: String(event?.returnValues?.price),
+                    fee: "0",
                     currency: Currency.MON,
                     confirmedAt: BigInt(event.blockNumber ?? 0)
                 };
@@ -255,8 +255,8 @@ export const confirmItemUpdatePriceMarket = async (
                     value: 0,
                     events: {
                         listingId: String(event?.returnValues?.listingId as bigint),
-                        oldPrice: String(event?.returnValues?.oldPrice as bigint),
-                        newPrice: String(event?.returnValues?.newPrice as bigint),
+                        oldPrice: String(event?.returnValues?.oldPrice),
+                        newPrice: String(event?.returnValues?.newPrice),
                     },
                     logs: { eventName: "UpdatePrice" },
                     confirmedAt: dayjs.utc().toDate(),
@@ -268,7 +268,7 @@ export const confirmItemUpdatePriceMarket = async (
                 }
 
                 //update price order
-                await updatePriceOrder(pgClient, order.order_id, BigInt(event.blockNumber ?? 0), BigInt(event?.returnValues?.newPrice as bigint))
+                await updatePriceOrder(pgClient, order.order_id, BigInt(event.blockNumber ?? 0), String(event?.returnValues?.newPrice))
 
 
                 await updateBotLastestActOnchain(bot.id, BigInt(event.blockNumber ?? 0), pgClient)
