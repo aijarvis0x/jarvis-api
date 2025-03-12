@@ -410,7 +410,7 @@ export const updateBotOwner = async (props: {
 }): Promise<void> => {
   const query = `
     UPDATE bots
-    SET user_id = $1, owner = $2
+    SET user_id = $1, owner = $2,
         updated_at = NOW()
     WHERE id = $3 RETURNING *;
   `;
