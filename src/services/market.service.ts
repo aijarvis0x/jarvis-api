@@ -110,7 +110,7 @@ export const confirmItemCancelledMarket = async (
                 }
 
                 // Check if bot exists
-                const bot = await findBotDelistableByNftId(order.bot_id, BigInt(event.blockNumber ?? 0));
+                const bot = await findBotDelistableByNftId(order.nft_id, BigInt(event.blockNumber ?? 0));
                 if (!bot) {
                     throw new Error(`Bot doesn't exist or has been updated`);
                 }
@@ -169,7 +169,7 @@ export const confirmItemSoldMarket = async (
                 }
 
                 // Check if bot exists
-                const bot = await findBotDelistableByNftId(order.bot_id, BigInt(event.blockNumber ?? 0));
+                const bot = await findBotDelistableByNftId(order.nft_id, BigInt(event.blockNumber ?? 0));
                 if (!bot) {
                     throw new Error(`Bot doesn't exist or has been updated`);
                 }
@@ -235,7 +235,7 @@ export const confirmItemUpdatePriceMarket = async (
                 }
 
                 // Check if bot exists
-                const bot = await findBotDelistableByNftId(order.bot_id, BigInt(event.blockNumber ?? 0));
+                const bot = await findBotDelistableByNftId(order.nft_id, BigInt(event.blockNumber ?? 0));
                 if (!bot) {
                     throw new Error(`Bot doesn't exist or has been updated`);
                 }
