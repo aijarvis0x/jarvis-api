@@ -637,19 +637,19 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
         case "pool1":
           _type = "Comon"
           break;
-        case "pool1":
+        case "pool2":
           _type = "Rare"
 
           break;
-        case "pool1":
+        case "pool3":
           _type = "Epic"
 
           break;
-        case "pool1":
+        case "pool4":
           _type = "Legendary"
 
           break;
-        case "pool1":
+        case "pool5":
           _type = "Mythic"
           break;
 
@@ -687,8 +687,10 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
             ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW(), $11)
           RETURNING id;
         `;
+
+
     const values = [
-      [params.agentType],
+      JSON.stringify([params.agentType]),
       name,
       params.nftId,
       params.ownerId,
@@ -700,6 +702,8 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
       BotState.WaitingGenerate,
       params.blockNumber
     ];
+
+    console.log(values)
 
     const result = await pool.query(insertQuery, values);
     const newBotId = result.rows[0].id;
