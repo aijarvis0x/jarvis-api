@@ -26,7 +26,8 @@ export default async (app: AppInstance) => {
           "description": bot?.description,
           "external_url": `https://app.aijarvis.xyz/ai-agents/${bot.id}`,
           "image": bot?.avatar,
-          "name": bot?.name ?? "Test",
+          "background": bot?.background,
+          "name": bot?.name ?? "...",
           "attributes": bot?.attributes
         })
       } catch (error) {
