@@ -415,7 +415,7 @@ export const updateBotOwner = async (props: {
     WHERE id = $3 RETURNING *;
   `;
 
-  const values = [props.userId, props.userId, props.botId];
+  const values = [props.userId, props.newOwner, props.botId];
 
   try {
     await db.pool.query(query, values);
