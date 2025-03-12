@@ -5,7 +5,7 @@ import { MintNftEvent, TxStatus } from '../utils/monad-utils.js';
 import { EventLog } from 'web3';
 import dayjs from 'dayjs';
 import { confirmedMintBot } from '../services/bot.service.js';
-import { confirmItemCancelledMarket, confirmItemListedMarket, confirmItemSoldMarket } from '../services/market.service.js';
+import { confirmItemCancelledMarket, confirmItemListedMarket, confirmItemSoldMarket, confirmItemUpdatePriceMarket } from '../services/market.service.js';
 
 const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => {
@@ -50,16 +50,21 @@ const _processNftEvents = async (
 
     for (let i = 0; i < pastEvents.length; i++) {
 
-      const event = pastEvents[i] as EventLog
-      switch (event.event) {
-        case "Minted":
-          await mintEvent(event)
-          break;
+      try {
+        const event = pastEvents[i] as EventLog
+        switch (event.event) {
+          case "Minted":
+            await mintEvent(event)
+            console.log(`[mintEvent] - done : ${event.transactionHash}`)
+            break;
 
-        default:
-          break;
+          default:
+            break;
+        }
+
+      } catch (error) {
+        console.log(error)
       }
-
     }
 
   } catch (error) {
@@ -88,6 +93,19 @@ async function _soldNftEvent(event: EventLog) {
       return console.log(`[_soldNftEvent] Tx ${event.transactionHash} existed`)
     }
     await confirmItemSoldMarket(event)
+  } catch (error) {
+    throw error
+  }
+}
+
+async function _updatePriceOrderEvent(event: EventLog) {
+  try {
+    console.log(event)
+    //check event exist
+    if (!(await isTxNotExist(event.transactionHash, event.logIndex))) {
+      return console.log(`[_updatePriceOrderEvent] Tx ${event.transactionHash} existed`)
+    }
+    await confirmItemUpdatePriceMarket(event)
   } catch (error) {
     throw error
   }
@@ -128,24 +146,36 @@ const _processMarketEvents = async (
 
     for (let i = 0; i < pastEvents.length; i++) {
 
-      const event = pastEvents[i] as EventLog
-      console.log(event)
+      try {
+        const event = pastEvents[i] as EventLog
+        console.log(event)
 
-      switch (event.event) {
-        case "Listed":
-          await _listedNftEvent(event)
-          break;
+        switch (event.event) {
+          case "Listed":
+            await _listedNftEvent(event)
+            console.log(`[_listedNftEvent] - done : ${event.transactionHash}`)
+            break;
 
-        case "Sold":
-          await _soldNftEvent(event)
-          break;
+          case "Sold":
+            await _soldNftEvent(event)
+            console.log(`[_soldNftEvent] - done : ${event.transactionHash}`)
+            break;
 
-        case "Cancelled":
-          await _cancelledNftEvent(event)
-          break;
+          case "Cancelled":
+            await _cancelledNftEvent(event)
+            console.log(`[_cancelledNftEvent] - done : ${event.transactionHash}`)
+            break;
 
-        default:
-          break;
+          case "PriceUpdated":
+            await _updatePriceOrderEvent(event)
+            console.log(`[_updatePriceOrderEvent] - done : ${event.transactionHash}`)
+            break;
+
+          default:
+            break;
+        }
+      } catch (error) {
+        console.log(error)
       }
 
     }
