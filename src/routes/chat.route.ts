@@ -89,6 +89,7 @@ export default async (app: AppInstance) => {
             u.name AS user_name,
             u.avatar AS user_avatar,
             b.id as bot_id
+            b.category_ids 
           FROM conversations c
           JOIN bots b ON c.bot_id = b.id
           JOIN users u ON c.user_id = u.id
