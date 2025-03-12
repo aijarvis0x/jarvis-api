@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "orders" ALTER COLUMN "tag" DROP NOT NULL,
+ALTER COLUMN "currency" DROP NOT NULL;

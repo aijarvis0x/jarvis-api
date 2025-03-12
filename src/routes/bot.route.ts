@@ -7,6 +7,7 @@ import {
   publishBotSchema
 } from "../schemas/bot.schema.js"
 import { findBotById, updateBotBackground, updateBotById, findBotByIdNonOwner, getListBots, publishBot } from "../services/bot.service.js"
+import { findOrderListedOfBot } from "../services/order.service.js"
 
 
 import type { AppInstance } from "../types.js"
@@ -171,10 +172,22 @@ export default async (app: AppInstance) => {
         if (!bot) {
           return reply.status(404).send({ message: "AI-agent not found" });
         }
+
+
+        const order = await findOrderListedOfBot(bot.id)
+
+        let price = order?.price
+
+        const orderData = {
+          orderId: order?.order_id,
+          price: order?.price,
+          state: order?.state
+        }
+
         if (!!userId && userId == bot.user_id) {
           return reply.status(200).send({
             message: "OK",
-            data: bot,
+            data: { ...bot, order: orderData },
           });
         } else {
           let {
@@ -214,7 +227,9 @@ export default async (app: AppInstance) => {
               lowest_price,
               count_conversation,
               state,
-              owner
+              owner,
+              order: orderData
+
             },
           });
         }

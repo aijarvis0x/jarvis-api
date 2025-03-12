@@ -141,13 +141,13 @@ model Order {
   sellerAddress       String      @map("seller_address")
   buyerAddress        String?     @map("buyer_address")
 
-  tag                 String
+  tag                 String?
   subTag              String?     @map("sub_tag")
 
   nftId               String      @map("nft_id")
   price               BigInt      @map("price")
   fee                 BigInt?
-  currency            String
+  currency            String?
   state               OrderState
 
   botId               BigInt     @map("bot_id")   // Foreign Key Added
@@ -158,7 +158,9 @@ model Order {
 
   createdAt           DateTime    @default(now()) @map("created_at")
   updatedAt           DateTime    @default(now()) @map("updated_at")
-  soldAt              DateTime?   @map("sold_at")
+  soldAt              BigInt?     @map("sold_at")
+  lastestAct          BigInt?     @map("lastest_act")
+
 
   @@index([sellerId])
   @@index([buyerId])

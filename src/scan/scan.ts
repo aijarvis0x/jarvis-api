@@ -21,7 +21,7 @@ const processEventBlock = async (
 ): Promise<void> => {
   try {
     console.log('\tScan from ', blocks[0], ' to ', blocks[blocks.length - 1])
-    // await _processNftEvents(blocks, currentBlockNumber);
+    await _processNftEvents(blocks, currentBlockNumber);
     await _processMarketEvents(blocks, currentBlockNumber)
   } catch (error: any) {
     console.log(error.error);

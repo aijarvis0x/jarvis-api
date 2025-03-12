@@ -37,5 +37,5 @@ export enum Currency {
 export enum OrderState {
   Listed = 'listed',
   Cancelled = 'cancelled',
-  Sold = 'sold'
+  Sold = 'purchased'
 }

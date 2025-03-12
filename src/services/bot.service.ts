@@ -1,6 +1,6 @@
-import type { PoolClient, QueryConfig } from "pg"
+import type { Pool, PoolClient, QueryConfig } from "pg"
 import { db } from "../lib/pg.js"
-import { BotState } from "../constants.js"
+import { BotState, OrderState } from "../constants.js"
 import { AWS_REGION, AWS_SQS_CREATE_AI_AGENT, MINT_AI_FEE } from "../env.js"
 import dayjs from "dayjs"
 import { sendMessage } from "../lib/sqs.js"
@@ -10,6 +10,7 @@ import { findUserByAddress } from "./users.service.js"
 import { EventLog } from 'web3';
 import { selectImageFromPool } from "../utils/s3-pool.js"
 import { s3Config } from "../config/s3-config.js"
+import { findOrderOfBots } from "./order.service.js"
 
 
 export type BotInfo = {
@@ -294,8 +295,30 @@ export const getListBots = async (userId: bigint, page: number, limit: number) =
     values: [userId, limit, offset],
   };
 
-  return await db.pool.query(statement)
+
+  let bots = await db.pool.query(statement)
     .then((result) => result.rows ?? []);
+  let botIds = bots.map(ele => BigInt(ele.id))
+
+  let orders = await findOrderOfBots(botIds)
+  let OrdersMap = {}
+  orders.map(ele => {
+    if(ele.state == OrderState.Listed) {
+      OrdersMap[ele?.bot_id] = {
+        orderId: ele?.order_id,
+        price: ele?.price,
+        state: OrderState.Listed
+      }
+    }
+  })
+
+
+    return bots.map(ele => {
+      return {
+        ...ele,
+        order: OrdersMap[ele?.id]
+      }
+    })
 };
 
 
@@ -399,7 +422,7 @@ export const updateBotOwner = async (props: {
 };
 
 
-export const updateBotLastestActOnchain = async (botId: bigint, lastActOn: bigint) => {
+export const updateBotLastestActOnchain = async (botId: bigint, lastActOn: bigint, pool: PoolClient | Pool = db.pool) => {
   const query = `
     UPDATE bots
     SET lastest_act = $1,
@@ -410,7 +433,7 @@ export const updateBotLastestActOnchain = async (botId: bigint, lastActOn: bigin
   const values = [lastActOn, botId];
 
   try {
-    await db.pool.query(query, values);
+    await pool.query(query, values);
   } catch (error) {
     throw error;
   }
