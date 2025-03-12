@@ -629,41 +629,49 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
     // const avatarUrl = `https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/avatars/example.jpeg`;
 
     const covertType = (typeInput) => {
-      let result = ''
+      let _type = ''
+
       switch (typeInput) {
         case "pool1":
-          result = "Comon"
+          _type = "Comon"
           break;
         case "pool1":
-          result = "Rare"
+          _type = "Rare"
 
           break;
         case "pool1":
-          result = "Epic"
+          _type = "Epic"
 
           break;
         case "pool1":
-          result = "Legendary"
+          _type = "Legendary"
 
           break;
         case "pool1":
-          result = "Mythic"
+          _type = "Mythic"
           break;
 
         default:
           break;
       }
 
-      return result
+      return _type
     }
     const girlDescription = "The degen crypto girl – smart, sexy, and always one step ahead. She trades with confidence, flips NFTs like a pro, and laughs in the face of liquidations. Sharp, fearless, and a little dangerous—she’s not just here to play, she’s here to win. Think you can handle her?"
     const descriptionMapping = {
-      1: "Your crypto nurse – soft hands, sharp mind. She knows your highs, your lows, and every chart-induced heartbreak in between. A soothing voice when the market bleeds, a playful tease when the gains roll in—she always gives you exactly what you need. Sweet, fiery, and just a little too tempting. Using Allora Network for everyday trading.",
-      2: girlDescription,
-      3: "The Ultimate Degen Trader – Risk It All, Win It All. 🚀🔥 A high-stakes degen who thrives on futures, stacks rare NFTs, and holds memes like gold. Sharp in the market, smooth in real life—serious when it counts, but always a romantic at heart.",
+      0: "Your crypto nurse – soft hands, sharp mind. She knows your highs, your lows, and every chart-induced heartbreak in between. A soothing voice when the market bleeds, a playful tease when the gains roll in—she always gives you exactly what you need. Sweet, fiery, and just a little too tempting. Using Allora Network for everyday trading.",
+      1: girlDescription,
+      2: "The Ultimate Degen Trader – Risk It All, Win It All. 🚀🔥 A high-stakes degen who thrives on futures, stacks rare NFTs, and holds memes like gold. Sharp in the market, smooth in real life—serious when it counts, but always a romantic at heart.",
+    }
+
+    const names = {
+      0: "MonCryptoMan",
+      1: "MonNurse",
+      2: "MonAnime",
     }
     const getValue = (obj: any, key: number, defaultValue: any) => obj?.[key] ?? defaultValue;
     const description = getValue(descriptionMapping, params.agentType, girlDescription)
+    const name = getValue(names, params.agentType, "MonCryptoMan") + ` #${params.nftId}`
 
     const attributes = JSON.stringify([
       { rare: covertType(type) }
@@ -672,12 +680,13 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
 
     const insertQuery = `
           INSERT INTO bots
-            (nft_id, user_id, owner, avatar, description, attributes, setting_mode, state, created_at, updated_at, lastest_act)
+            (name, nft_id, user_id, owner, avatar, description, attributes, setting_mode, state, created_at, updated_at, lastest_act)
           VALUES
             ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW(), $9)
           RETURNING id;
         `;
     const values = [
+      name,
       params.nftId,
       params.ownerId,
       params.owner,
