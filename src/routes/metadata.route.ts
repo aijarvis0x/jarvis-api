@@ -21,6 +21,7 @@ export default async (app: AppInstance) => {
         }
 
         return reply.send({
+          "nft_id": bot?.nft_id,
           "description": bot?.description,
           "external_url": `https://app.aijarvis.xyz/ai-agents/${bot.id}`,
           "image": bot?.avatar,
