@@ -18,5 +18,6 @@ export const getListConversationSchema = {
 export const sendMessageBody = z.object({
   conversationId: z.string(),
   text: z.string(),
-  agentId: z.string()
+  agentId: z.string(),
+  categoryId: z.string().optional().default("1")
 });
