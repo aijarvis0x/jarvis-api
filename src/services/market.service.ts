@@ -3,7 +3,7 @@ import { db } from "../lib/pg.js"
 import { BotState, Currency, OrderState } from "../constants.js"
 import dayjs from "dayjs"
 import { createTransaction, findBotByNftId, findBotDelistableByNftId, updateBotLastestActOnchain, updateBotOwner } from "./bot.service.js"
-import { buyOrder, cancelOrder, createOrder, CreateOrderParams, findOrderByIdKiosk, findOrderByTx, updateOrderState } from "./order.service.js"
+import { buyOrder, cancelOrder, createOrder, CreateOrderParams, findOrderByOrderId, findOrderByTx, updateOrderState, updatePriceOrder } from "./order.service.js"
 import { MINT_AI_FEE } from "../env.js"
 import { findUserByAddress } from "./users.service.js"
 import { multiConnectionTransaction } from "../lib/db/transaction.js"
@@ -36,6 +36,34 @@ export const confirmItemListedMarket = async (
 
                 if (order) {
                     throw new Error(`Order is existed`);
+                }
+
+                //check transaction existed?
+                let log = await createTransaction(pgClient, {
+                    txHash: event?.transactionHash,
+                    status: TxStatus.CONFIRMED,
+                    sender: event?.address,
+                    recipient: event.address,
+                    nonce: Number(event.transactionIndex),
+                    logIndex: Number(event.logIndex),
+                    contractAddress: process.env.MARKET_CONTRACT_ADDRESS,
+                    blockNumber: Number(event.blockNumber),
+                    value: 0,
+                    events: {
+                        seller: event.returnValues.seller,
+                        listingId: BigInt(event?.returnValues?.listingId as bigint),
+                        nftContract: event.returnValues.nftContract,
+                        tokenId: BigInt(event?.returnValues?.tokenId as bigint),
+                        price: BigInt(event?.returnValues?.price as bigint),
+                        paymentToken: event.returnValues.paymentToken,
+                    },
+                    logs: { eventName: "Listed" },
+                    confirmedAt: dayjs.utc().toDate(),
+                })
+
+
+                if (!log) {
+                    throw new Error("transaction existed. Tx: " + String(event?.transactionHash))
                 }
 
 
@@ -76,13 +104,18 @@ export const confirmItemCancelledMarket = async (
             try {
                 const [pgClient] = clients;
 
+                const order = await findOrderByOrderId(BigInt(event?.returnValues?.listingId as bigint))
+                if (!order) {
+                    throw new Error(`Order doesn't exist or has been updated`);
+                }
+
                 // Check if bot exists
-                const bot = await findBotDelistableByNftId(String(event?.returnValues?.tokenId), BigInt(event.blockNumber ?? 0));
+                const bot = await findBotDelistableByNftId(order.bot_id, BigInt(event.blockNumber ?? 0));
                 if (!bot) {
                     throw new Error(`Bot doesn't exist or has been updated`);
                 }
 
-                const seller = await findUserByAddress(String(event?.returnValues?.seller))
+                const seller = await findUserByAddress(order?.seller_address)
                 if (!seller) {
                     throw new Error(`Seller doesn't exist`);
                 }
@@ -91,20 +124,17 @@ export const confirmItemCancelledMarket = async (
                 let log = await createTransaction(pgClient, {
                     txHash: event?.transactionHash,
                     status: TxStatus.CONFIRMED,
-                    sender: event?.returnValues?.owner,
+                    sender: event?.address,
                     recipient: event.address,
                     nonce: Number(event.transactionIndex),
                     logIndex: Number(event.logIndex),
-                    contractAddress: process.env.NFT_CONTRACT_ADDRESS,
+                    contractAddress: process.env.MARKET_CONTRACT_ADDRESS,
                     blockNumber: Number(event.blockNumber),
                     value: 0,
                     events: {
-                        owner: event.returnValues.owner,
-                        tokenId: Number(event?.returnValues?.tokenId),
-                        agentType: Number(event.returnValues.agentType),
-                        packageId: Number(event.returnValues.packageId)
+                        listingId: BigInt(event?.returnValues?.listingId as bigint)
                     },
-                    logs: null,
+                    logs: { eventName: "Cancelled" },
                     confirmedAt: dayjs.utc().toDate(),
                 })
 
@@ -133,8 +163,13 @@ export const confirmItemSoldMarket = async (
             try {
                 const [pgClient] = clients;
 
+                const order = await findOrderByOrderId(BigInt(event?.returnValues?.listingId as bigint))
+                if (!order) {
+                    throw new Error(`Order doesn't exist or has been updated`);
+                }
+
                 // Check if bot exists
-                const bot = await findBotDelistableByNftId(String(event.id), BigInt(event.blockNumber ?? 0));
+                const bot = await findBotDelistableByNftId(order.bot_id, BigInt(event.blockNumber ?? 0));
                 if (!bot) {
                     throw new Error(`Bot doesn't exist or has been updated`);
                 }
@@ -144,12 +179,96 @@ export const confirmItemSoldMarket = async (
                     throw new Error(`Buyer not exist`);
                 }
 
+                //check transaction existed?
+                let log = await createTransaction(pgClient, {
+                    txHash: event?.transactionHash,
+                    status: TxStatus.CONFIRMED,
+                    sender: event?.address,
+                    recipient: event.address,
+                    nonce: Number(event.transactionIndex),
+                    logIndex: Number(event.logIndex),
+                    contractAddress: process.env.MARKET_CONTRACT_ADDRESS,
+                    blockNumber: Number(event.blockNumber),
+                    value: 0,
+                    events: {
+                        buyer: event.returnValues.buyer,
+                        listingId: BigInt(event?.returnValues?.listingId as bigint),
+                    },
+                    logs: { eventName: "Sold" },
+                    confirmedAt: dayjs.utc().toDate(),
+                })
+
+
+                if (!log) {
+                    throw new Error("transaction existed. Tx: " + String(event?.transactionHash))
+                }
+
                 await updateBotOwner({
                     botId: bot.id,
                     userId: buyer.id
                 })
 
                 await buyOrder(pgClient, BigInt(event?.returnValues?.listingId as bigint), String(event.transactionHash), BigInt(event.blockNumber ?? 0), String(event?.returnValues?.buyer), buyer.id);
+
+                await updateBotLastestActOnchain(bot.id, BigInt(event.blockNumber ?? 0), pgClient)
+
+            } catch (error) {
+                bail(new Error("Error during bot processing transaction:" + error));
+                throw error;
+            }
+        })
+}
+
+export const confirmItemUpdatePriceMarket = async (
+    event: EventLog,
+) => {
+    //create bot
+    await multiConnectionTransaction(
+        [db.pool],
+        async (bail, clients, mongoSession) => {
+            try {
+                const [pgClient] = clients;
+
+                const order = await findOrderByOrderId(BigInt(event?.returnValues?.listingId as bigint))
+                if (!order) {
+                    throw new Error(`Order doesn't exist or has been updated`);
+                }
+
+                // Check if bot exists
+                const bot = await findBotDelistableByNftId(order.bot_id, BigInt(event.blockNumber ?? 0));
+                if (!bot) {
+                    throw new Error(`Bot doesn't exist or has been updated`);
+                }
+
+
+                //check transaction existed?
+                let log = await createTransaction(pgClient, {
+                    txHash: event?.transactionHash,
+                    status: TxStatus.CONFIRMED,
+                    sender: event?.address,
+                    recipient: event.address,
+                    nonce: Number(event.transactionIndex),
+                    logIndex: Number(event.logIndex),
+                    contractAddress: process.env.MARKET_CONTRACT_ADDRESS,
+                    blockNumber: Number(event.blockNumber),
+                    value: 0,
+                    events: {
+                        listingId: BigInt(event?.returnValues?.listingId as bigint),
+                        oldPrice: BigInt(event?.returnValues?.oldPrice as bigint),
+                        newPrice: BigInt(event?.returnValues?.newPrice as bigint),
+                    },
+                    logs: { eventName: "UpdatePrice" },
+                    confirmedAt: dayjs.utc().toDate(),
+                })
+
+
+                if (!log) {
+                    throw new Error("transaction existed. Tx: " + String(event?.transactionHash))
+                }
+
+                //update price order
+                await updatePriceOrder(pgClient, order.order_id, BigInt(event.blockNumber ?? 0), BigInt(event?.returnValues?.newPrice as bigint))
+
 
                 await updateBotLastestActOnchain(bot.id, BigInt(event.blockNumber ?? 0), pgClient)
 

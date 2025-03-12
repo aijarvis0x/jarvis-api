@@ -5,7 +5,7 @@ import { MintNftEvent, TxStatus } from '../utils/monad-utils.js';
 import { EventLog } from 'web3';
 import dayjs from 'dayjs';
 import { confirmedMintBot } from '../services/bot.service.js';
-import { confirmItemCancelledMarket, confirmItemListedMarket, confirmItemSoldMarket } from '../services/market.service.js';
+import { confirmItemCancelledMarket, confirmItemListedMarket, confirmItemSoldMarket, confirmItemUpdatePriceMarket } from '../services/market.service.js';
 
 const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => {
@@ -93,6 +93,19 @@ async function _soldNftEvent(event: EventLog) {
   }
 }
 
+async function _updatePriceOrderEvent(event: EventLog) {
+  try {
+    console.log(event)
+    //check event exist
+    if (!(await isTxNotExist(event.transactionHash, event.logIndex))) {
+      return console.log(`[_updatePriceOrderEvent] Tx ${event.transactionHash} existed`)
+    }
+    await confirmItemUpdatePriceMarket(event)
+  } catch (error) {
+    throw error
+  }
+}
+
 async function _cancelledNftEvent(event: EventLog) {
   try {
     console.log(event)
@@ -142,6 +155,10 @@ const _processMarketEvents = async (
 
         case "Cancelled":
           await _cancelledNftEvent(event)
+          break;
+
+        case "PriceUpdated":
+          await _updatePriceOrderEvent(event)
           break;
 
         default:

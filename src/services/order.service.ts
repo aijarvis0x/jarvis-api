@@ -32,11 +32,11 @@ export const findOrderByTx = async (txHash: string) => {
         .then((result) => result.rows?.[0] ?? null)
 }
 
-export const findOrderByIdKiosk = async (botId: bigint, kiosk: string) => {
+export const findOrderByOrderId = async (orderId: bigint) => {
     const statement: QueryConfig = {
-        name: "findOrderByIdKiosk",
-        text: "SELECT * FROM orders WHERE bot_id = $1 AND kiosk = $2 AND state = 'listed' LIMIT 1",
-        values: [botId, kiosk],
+        name: "findOrderByOrderId",
+        text: "SELECT * FROM orders WHERE order_id = $1 LIMIT 1",
+        values: [orderId],
     }
 
     return await db.pool.query(statement)
@@ -153,4 +153,17 @@ export const updateBotState = async (nftId: string, newState: string) => {
     const values = [newState, nftId];
 
     return await db.pool.query(updateQuery, values);
+}
+
+export const updatePriceOrder = async (pool: PoolClient, orderId: bigint, confirmedAt: bigint, newPrice: bigint) => {
+    const updateQuery = `
+        UPDATE orders
+        SET price = $1, updated_at = NOW(), lastest_act = $2, state = 'listed'
+        WHERE orderId = $3 AND lastest_act < $4
+        RETURNING *;
+    `;
+    const values = [newPrice, confirmedAt, orderId, confirmedAt];
+
+
+    return await pool.query(updateQuery, values);
 }
