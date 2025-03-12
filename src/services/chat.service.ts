@@ -68,7 +68,8 @@ export const sendMessage = async (
   userId: bigint,
   conversationId: string,
   text: string,
-  agentId: string
+  agentId: string,
+  categoryId: string
 ) => {
   try {
     // const response = await client.post(`${agentId}/message`, {
@@ -76,7 +77,16 @@ export const sendMessage = async (
     //   userId: userId,
     //   roomId: conversationId,
     // });
-    const response = await client.post(`/e61b079d-5226-06e9-9763-a33094aa8d82/message`, {
+    const categoryMapping = {
+      "2": "95654c56-888a-0d17-bc32-57df8d1dedc3",
+      "1": "e1fc0723-cc1c-0b66-9b71-15a5303c33a3",
+      "3": "261a5a1d-75b0-0a2c-9fd9-da7e1ad06932",
+    }
+    const agentId = categoryMapping[categoryId];
+    if (!agentId) {
+      throw new Error(`category ${categoryId} not found, categories: 1, 2, 3`)
+    }
+    const response = await client.post(`/${agentId}/message`, {
       text: text,
       userId: String(userId),
       roomId: conversationId,

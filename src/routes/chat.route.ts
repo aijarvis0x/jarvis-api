@@ -131,10 +131,10 @@ export default async (app: AppInstance) => {
       const { userId } = request
       const { conversationId,
         text,
-        agentId } = request.body
+        agentId, categoryId } = request.body
 
       try {
-        const textResponse = await sendMessage(userId, conversationId, text, agentId)
+        const textResponse = await sendMessage(userId, conversationId, text, agentId, categoryId)
 
         return reply.status(200).send({
           message: "OK",
