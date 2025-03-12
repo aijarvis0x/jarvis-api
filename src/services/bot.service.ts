@@ -404,16 +404,17 @@ export const updateOnlyStateBot = async (props: {
 
 export const updateBotOwner = async (props: {
   botId: string,
-  userId: string
+  userId: string,
+  newOwner: string
 }): Promise<void> => {
   const query = `
     UPDATE bots
-    SET user_id = $1,
+    SET user_id = $1, owner = $2
         updated_at = NOW()
-    WHERE id = $2 RETURNING *;
+    WHERE id = $3 RETURNING *;
   `;
 
-  const values = [props.userId, props.botId];
+  const values = [props.userId, props.userId, props.botId];
 
   try {
     await db.pool.query(query, values);

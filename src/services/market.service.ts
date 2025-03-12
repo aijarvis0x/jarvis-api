@@ -205,7 +205,8 @@ export const confirmItemSoldMarket = async (
 
                 await updateBotOwner({
                     botId: bot.id,
-                    userId: buyer.id
+                    userId: buyer.id,
+                    newOwner: String(event.returnValues.buyer)
                 })
 
                 await buyOrder(pgClient, BigInt(event?.returnValues?.listingId as bigint), String(event.transactionHash), BigInt(event.blockNumber ?? 0), String(event?.returnValues?.buyer), buyer.id);
