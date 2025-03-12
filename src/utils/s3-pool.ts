@@ -41,7 +41,7 @@ const AGENT_TYPES = {
   1: {
     name: 'Agent Type 1',
     packages: {
-      1: {
+      0: {
         name: 'Mint Package',
         availablePools: [
           { pool: 'pool1', defaultRate: 0.6 },
@@ -49,7 +49,7 @@ const AGENT_TYPES = {
           { pool: 'pool3', defaultRate: 0.1 }
         ]
       },
-      2: {
+      1: {
         name: 'Premium Package',
         availablePools: [
           { pool: 'pool2', defaultRate: 0.4 },
@@ -57,7 +57,7 @@ const AGENT_TYPES = {
           { pool: 'pool4', defaultRate: 0.2 }
         ]
       },
-      3: {
+      2: {
         name: 'Premium Package',
         availablePools: [
           { pool: 'pool2', defaultRate: 0.4 },
@@ -70,7 +70,7 @@ const AGENT_TYPES = {
   2: {
     name: 'Agent Type 2',
     packages: {
-      1: {
+      0: {
         name: 'Elite Package',
         availablePools: [
           { pool: 'pool3', defaultRate: 0.3 },
@@ -78,7 +78,7 @@ const AGENT_TYPES = {
           { pool: 'pool5', defaultRate: 0.4 }
         ]
       },
-      2: {
+      1: {
         name: 'Standard Package',
         availablePools: [
           { pool: 'pool1', defaultRate: 0.4 },
@@ -86,7 +86,7 @@ const AGENT_TYPES = {
           { pool: 'pool5', defaultRate: 0.2 }
         ]
       },
-      3: {
+      2: {
         name: 'Standard Package',
         availablePools: [
           { pool: 'pool2', defaultRate: 0.4 },
