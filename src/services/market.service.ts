@@ -51,10 +51,10 @@ export const confirmItemListedMarket = async (
                     value: 0,
                     events: {
                         seller: event.returnValues.seller,
-                        listingId: BigInt(event?.returnValues?.listingId as bigint),
+                        listingId: String(event?.returnValues?.listingId as bigint),
                         nftContract: event.returnValues.nftContract,
-                        tokenId: BigInt(event?.returnValues?.tokenId as bigint),
-                        price: BigInt(event?.returnValues?.price as bigint),
+                        tokenId: String(event?.returnValues?.tokenId as bigint),
+                        price: String(event?.returnValues?.price as bigint),
                         paymentToken: event.returnValues.paymentToken,
                     },
                     logs: { eventName: "Listed" },

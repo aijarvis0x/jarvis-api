@@ -285,6 +285,7 @@ export const getListBots = async (userId: bigint, page: number, limit: number) =
         background,
         description,
         nft_id,
+        attributes,
         state,
         is_published
       FROM bots
@@ -303,7 +304,7 @@ export const getListBots = async (userId: bigint, page: number, limit: number) =
   let orders = await findOrderOfBots(botIds)
   let OrdersMap = {}
   orders.map(ele => {
-    if(ele.state == OrderState.Listed) {
+    if (ele.state == OrderState.Listed) {
       OrdersMap[ele?.bot_id] = {
         orderId: ele?.order_id,
         price: ele?.price,
@@ -313,12 +314,12 @@ export const getListBots = async (userId: bigint, page: number, limit: number) =
   })
 
 
-    return bots.map(ele => {
-      return {
-        ...ele,
-        order: OrdersMap[ele?.id]
-      }
-    })
+  return bots.map(ele => {
+    return {
+      ...ele,
+      order: OrdersMap[ele?.id]
+    }
+  })
 };
 
 
@@ -564,7 +565,7 @@ export const confirmedMintBot = async (
 }
 
 
-export const createTransaction = async (pool: PoolClient,params: {
+export const createTransaction = async (pool: PoolClient, params: {
   txHash,
   status,
   sender,
@@ -622,10 +623,39 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
     }
 
     //@todo random nft
-    const {url: avatarUrl} = await selectImageFromPool(s3Config, params.agentType, params.packageId)
+    const { url: avatarUrl, pool: type } = await selectImageFromPool(s3Config, params.agentType, params.packageId)
     console.log(`avatarUrl`, avatarUrl)
     // const avatarUrl = `https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/avatars/${params.nftId}.jpeg`;
     // const avatarUrl = `https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/avatars/example.jpeg`;
+
+    const covertType = (typeInput) => {
+      let result = ''
+      switch (typeInput) {
+        case "pool1":
+          result = "Comon"
+          break;
+        case "pool1":
+          result = "Rare"
+
+          break;
+        case "pool1":
+          result = "Epic"
+
+          break;
+        case "pool1":
+          result = "Legendary"
+
+          break;
+        case "pool1":
+          result = "Mythic"
+          break;
+
+        default:
+          break;
+      }
+
+      return result
+    }
     const girlDescription = "The degen crypto girl – smart, sexy, and always one step ahead. She trades with confidence, flips NFTs like a pro, and laughs in the face of liquidations. Sharp, fearless, and a little dangerous—she’s not just here to play, she’s here to win. Think you can handle her?"
     const descriptionMapping = {
       1: "Your crypto nurse – soft hands, sharp mind. She knows your highs, your lows, and every chart-induced heartbreak in between. A soothing voice when the market bleeds, a playful tease when the gains roll in—she always gives you exactly what you need. Sweet, fiery, and just a little too tempting. Using Allora Network for everyday trading.",
@@ -634,46 +664,9 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
     }
     const getValue = (obj: any, key: number, defaultValue: any) => obj?.[key] ?? defaultValue;
     const description = getValue(descriptionMapping, params.agentType, girlDescription)
+
     const attributes = JSON.stringify([
-      {
-        "trait_type": "Base",
-        "value": "Starfish"
-      },
-      {
-        "trait_type": "Eyes",
-        "value": "Big"
-      },
-      {
-        "trait_type": "Mouth",
-        "value": "Surprised"
-      },
-      {
-        "trait_type": "Level",
-        "value": 5
-      },
-      {
-        "trait_type": "Stamina",
-        "value": 1.4
-      },
-      {
-        "trait_type": "Personality",
-        "value": "Sad"
-      },
-      {
-        "display_type": "boost_number",
-        "trait_type": "Aqua Power",
-        "value": 40
-      },
-      {
-        "display_type": "boost_percentage",
-        "trait_type": "Stamina Increase",
-        "value": 10
-      },
-      {
-        "display_type": "number",
-        "trait_type": "Generation",
-        "value": 2
-      }
+      { rare: covertType(type) }
     ])
 
 

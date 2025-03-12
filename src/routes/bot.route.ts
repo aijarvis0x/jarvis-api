@@ -176,8 +176,6 @@ export default async (app: AppInstance) => {
 
         const order = await findOrderListedOfBot(bot.id)
 
-        let price = order?.price
-
         const orderData = {
           orderId: order?.order_id,
           price: order?.price,
@@ -200,6 +198,7 @@ export default async (app: AppInstance) => {
             nsfw,
             tag,
             sub_tag,
+            attributes,
             description,
             lastest_price,
             highest_price,
@@ -221,6 +220,7 @@ export default async (app: AppInstance) => {
               background,
               nsfw,
               tag,
+              attributes,
               sub_tag,
               description,
               lastest_price,
