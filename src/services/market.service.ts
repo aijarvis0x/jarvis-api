@@ -132,7 +132,7 @@ export const confirmItemCancelledMarket = async (
                     blockNumber: Number(event.blockNumber),
                     value: 0,
                     events: {
-                        listingId: BigInt(event?.returnValues?.listingId as bigint)
+                        listingId: String(event?.returnValues?.listingId as bigint)
                     },
                     logs: { eventName: "Cancelled" },
                     confirmedAt: dayjs.utc().toDate(),
@@ -192,7 +192,7 @@ export const confirmItemSoldMarket = async (
                     value: 0,
                     events: {
                         buyer: event.returnValues.buyer,
-                        listingId: BigInt(event?.returnValues?.listingId as bigint),
+                        listingId: String(event?.returnValues?.listingId as bigint),
                     },
                     logs: { eventName: "Sold" },
                     confirmedAt: dayjs.utc().toDate(),
@@ -253,9 +253,9 @@ export const confirmItemUpdatePriceMarket = async (
                     blockNumber: Number(event.blockNumber),
                     value: 0,
                     events: {
-                        listingId: BigInt(event?.returnValues?.listingId as bigint),
-                        oldPrice: BigInt(event?.returnValues?.oldPrice as bigint),
-                        newPrice: BigInt(event?.returnValues?.newPrice as bigint),
+                        listingId: String(event?.returnValues?.listingId as bigint),
+                        oldPrice: String(event?.returnValues?.oldPrice as bigint),
+                        newPrice: String(event?.returnValues?.newPrice as bigint),
                     },
                     logs: { eventName: "UpdatePrice" },
                     confirmedAt: dayjs.utc().toDate(),
