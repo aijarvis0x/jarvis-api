@@ -100,16 +100,16 @@ const AGENT_TYPES = {
 
 // Helper function to list available images in a pool
 async function listAvailableImages(s3: AWS.S3, pool) {
-  
+
   const { bucketName, folderPrefix } = POOL_CONFIG[pool];
-  
+
   const params = {
     Bucket: bucketName,
     Prefix: folderPrefix
   };
-  
+
   const data = await s3.listObjectsV2(params).promise();
-  
+
 	if (!data) {
 		throw new Error("no image")
 	} else if (!data.Contents) {
@@ -171,24 +171,24 @@ export async function selectImageFromPool(s3Config, agentId, packageId, customRa
   if (!packageConfig) {
     throw new Error(`Invalid package agentType: ${agentId} or packageType: ${packageId}`);
   }
-  
+
   // Load used images
   const usedImages = await loadUsedImages();
-  
+
   // Prepare rates to use
   const rates = customRates || packageConfig.availablePools.map(p => p.defaultRate);
-  
+
   // Validate rates sum to 1
   const rateSum = rates.reduce((sum, rate) => sum + rate, 0);
   if (Math.abs(rateSum - 1) > 0.001) {
     throw new Error(`Rates must sum to 1. Current sum: ${rateSum}`);
   }
-  
+
   // Determine which pool to use based on rates
   const randomValue = Math.random();
   let cumulativeRate = 0;
   let selectedPoolIndex = -1;
-  
+
   for (let i = 0; i < rates.length; i++) {
     cumulativeRate += rates[i];
     if (randomValue <= cumulativeRate) {
@@ -196,35 +196,35 @@ export async function selectImageFromPool(s3Config, agentId, packageId, customRa
       break;
     }
   }
-  
+
   if (selectedPoolIndex === -1) {
     throw new Error('Failed to select a pool');
   }
-  
+
   // Get the selected pool
   const selectedPool = packageConfig.availablePools[selectedPoolIndex].pool;
-  
+
   // Get all available images from the selected pool
   const allImages = await listAvailableImages(s3Client, selectedPool);
-  
+
   // Filter out used images
-  const availableImages = allImages.filter(image => 
+  const availableImages = allImages.filter(image =>
     !usedImages[image.key as string]
   );
-  
-  
+
+
   if (availableImages.length === 0) {
     throw new Error(`No available images in pool: ${selectedPool}`);
   }
-  
+
   // Randomly select an image from the available images
   const randomIndex = Math.floor(Math.random() * availableImages.length);
   const selectedImage = availableImages[randomIndex];
-  
+
   // Save updated used images
   const url = `https://${POOL_CONFIG[selectedPool].bucketName}.s3.amazonaws.com/${selectedImage.key}`
   await saveUsedImages(selectedImage.key, url, agentId, packageId);
-  
+
   // Return the selected image info
   return {
     imageKey: selectedImage.key,
@@ -234,6 +234,3 @@ export async function selectImageFromPool(s3Config, agentId, packageId, customRa
 }
 
 // Register routes
-
-
-
