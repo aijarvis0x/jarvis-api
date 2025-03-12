@@ -57,7 +57,7 @@ export const findOrderListedOfBot = async (botId: bigint) => {
 export const findOrderOfBots = async (bots: bigint[]) => {
     const statement: QueryConfig = {
         name: "findOrderOfBots",
-        text: "SELECT * FROM orders WHERE bot_id = ANY($1) AND state = 'listed",
+        text: "SELECT * FROM orders WHERE bot_id = ANY($1) AND state = 'listed'",
         values: [bots],
     }
 
