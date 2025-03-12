@@ -38,8 +38,8 @@ const POOL_CONFIG = {
 
 // Configure package types with their respective pools and rates
 const AGENT_TYPES = {
-  1: {
-    name: 'Agent Type 1',
+  0: {
+    name: 'Agent Type 0',
     packages: {
       0: {
         name: 'Mint Package',
@@ -67,8 +67,8 @@ const AGENT_TYPES = {
       }
     }
   },
-  2: {
-    name: 'Agent Type 2',
+  1: {
+    name: 'Agent Type 1',
     packages: {
       0: {
         name: 'Elite Package',
@@ -96,7 +96,7 @@ const AGENT_TYPES = {
       }
     }
   },
-  3: {
+  2: {
     name: 'Agent Type 2',
     packages: {
       0: {
