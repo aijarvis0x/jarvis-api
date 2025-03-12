@@ -122,7 +122,7 @@ export const buyOrder = async (pool: PoolClient, orderId: bigint, txHash: string
     const updateQuery = `
         UPDATE orders
         SET state = $1, updated_at = NOW(), lastest_act = $2, sold_at = $3, tx_hash_sold = $4, buyer_address = $5, buyer_id = $6
-        WHERE orderId = $6 AND state = 'listed'
+        WHERE order_id = $6 AND state = 'listed'
         RETURNING *;
     `;
     const values = [OrderState.Sold, confirmedAt, confirmedAt, txHash, buyer, buyerId, orderId];
@@ -159,7 +159,7 @@ export const updatePriceOrder = async (pool: PoolClient, orderId: bigint, confir
     const updateQuery = `
         UPDATE orders
         SET price = $1, updated_at = NOW(), lastest_act = $2, state = 'listed'
-        WHERE orderId = $3 AND lastest_act < $4
+        WHERE order_id = $3 AND lastest_act < $4
         RETURNING *;
     `;
     const values = [newPrice, confirmedAt, orderId, confirmedAt];
