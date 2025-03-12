@@ -57,12 +57,12 @@ export const findOrderListedOfBot = async (botId: bigint) => {
 export const findOrderOfBots = async (bots: bigint[]) => {
     const statement: QueryConfig = {
         name: "findOrderOfBots",
-        text: "SELECT * FROM orders WHERE bot_id = ANY($1) LIMIT 1",
+        text: "SELECT * FROM orders WHERE bot_id = ANY($1) AND state = 'listed",
         values: [bots],
     }
 
     return await db.pool.query(statement)
-        .then((result) => result.rows?.[0] ?? null)
+        .then((result) => result.rows ?? [])
 }
 
 
