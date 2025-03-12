@@ -23,11 +23,14 @@ export default async (app: AppInstance) => {
                 let { address, name } = request as any
                 let { _name } = request.params as any
                 let user: any
+
+
                 if (name == _name) {
                     user = await findUserByAddress(address)
                 } else {
-                    user = await findUserByName(_name)
+                    user = await findUserByAddress(_name)
                 }
+
 
                 return reply.status(200).send({
                     message: "OK",

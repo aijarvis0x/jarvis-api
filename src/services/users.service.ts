@@ -26,7 +26,7 @@ export async function findUserByAddress(
 ) {
   const statement: QueryConfig = {
     name: "findUserByAddress",
-  text: "SELECT id, name, avatar, description, address, telegram, discord, whatsapp, x, follower, following FROM users WHERE address = $1 LIMIT 1",
+  text: "SELECT id, name, avatar, description, address, telegram, discord, whatsapp, x, follower, following FROM users WHERE address = $1 OR name = $1 LIMIT 1",
     values: [address],
   }
 
