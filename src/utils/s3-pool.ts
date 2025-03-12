@@ -95,6 +95,35 @@ const AGENT_TYPES = {
         ]
       }
     }
+  },
+  3: {
+    name: 'Agent Type 2',
+    packages: {
+      0: {
+        name: 'Elite Package',
+        availablePools: [
+          { pool: 'pool5', defaultRate: 0.3 },
+          { pool: 'pool2', defaultRate: 0.3 },
+          { pool: 'pool1', defaultRate: 0.4 }
+        ]
+      },
+      1: {
+        name: 'Standard Package',
+        availablePools: [
+          { pool: 'pool2', defaultRate: 0.4 },
+          { pool: 'pool3', defaultRate: 0.4 },
+          { pool: 'pool1', defaultRate: 0.2 }
+        ]
+      },
+      2: {
+        name: 'Standard Package',
+        availablePools: [
+          { pool: 'pool4', defaultRate: 0.4 },
+          { pool: 'pool5', defaultRate: 0.4 },
+          { pool: 'pool1', defaultRate: 0.2 }
+        ]
+      }
+    }
   }
 };
 
