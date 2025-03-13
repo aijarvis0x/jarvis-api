@@ -14,113 +14,130 @@ dotenv.config();
 // Configuration for image pools
 const POOL_CONFIG = {
   // 5 different pool types
-  pool1: {
-    bucketName: 'javis-agent',
-    folderPrefix: 'pool1/'
+  pool1Cryptoman: {
+    bucketName: process.env.AWS_S3_BUCKET,
+    folderPrefix: 'pool1Cryptoman/'
   },
-  pool2: {
-    bucketName: 'javis-agent',
-    folderPrefix: 'pool2/'
+  pool2Cryptoman: {
+    bucketName: process.env.AWS_S3_BUCKET,
+    folderPrefix: 'pool2Cryptoman/'
   },
-  pool3: {
-    bucketName: 'javis-agent',
-    folderPrefix: 'pool3/'
+  pool3Cryptoman: {
+    bucketName: process.env.AWS_S3_BUCKET,
+    folderPrefix: 'pool3Cryptoman/'
   },
-  pool4: {
-    bucketName: 'javis-agent',
-    folderPrefix: 'pool4/'
+  pool1Nurse: {
+    bucketName: process.env.AWS_S3_BUCKET,
+    folderPrefix: 'pool1Nurse/'
   },
-  pool5: {
-    bucketName: 'javis-agent',
-    folderPrefix: 'pool5/'
-  }
+  pool2Nurse: {
+    bucketName: process.env.AWS_S3_BUCKET,
+    folderPrefix: 'pool2Nurse/'
+  },
+  pool3Nurse: {
+    bucketName: process.env.AWS_S3_BUCKET,
+    folderPrefix: 'pool3Nurse/'
+  },
+  pool1Anime: {
+    bucketName: process.env.AWS_S3_BUCKET,
+    folderPrefix: 'pool1Anime/'
+  },
+  pool2Anime: {
+    bucketName: process.env.AWS_S3_BUCKET,
+    folderPrefix: 'pool2Anime/'
+  },
+  pool3Anime: {
+    bucketName: process.env.AWS_S3_BUCKET,
+    folderPrefix: 'pool3Anime/'
+  },
+
 };
 
 // Configure package types with their respective pools and rates
 const AGENT_TYPES = {
   0: {
-    name: 'Agent Type 0',
+    name: 'MonCryptoMan',
     packages: {
       0: {
         name: 'Mint Package',
         availablePools: [
-          { pool: 'pool1', defaultRate: 0.6 },
-          { pool: 'pool2', defaultRate: 0.3 },
-          { pool: 'pool3', defaultRate: 0.1 }
+          { pool: 'pool1Cryptoman', defaultRate: 0.6 },
+          { pool: 'pool2Cryptoman', defaultRate: 0.3 },
+          { pool: 'pool3Cryptoman', defaultRate: 0.1 }
         ]
       },
       1: {
         name: 'Premium Package',
         availablePools: [
-          { pool: 'pool2', defaultRate: 0.4 },
-          { pool: 'pool3', defaultRate: 0.4 },
-          { pool: 'pool4', defaultRate: 0.2 }
+          { pool: 'pool2Cryptoman', defaultRate: 0.4 },
+          { pool: 'pool3Cryptoman', defaultRate: 0.4 },
+          { pool: 'pool1Cryptoman', defaultRate: 0.2 }
         ]
       },
       2: {
         name: 'Premium Package',
         availablePools: [
-          { pool: 'pool2', defaultRate: 0.4 },
-          { pool: 'pool4', defaultRate: 0.4 },
-          { pool: 'pool5', defaultRate: 0.2 }
+          { pool: 'pool2Cryptoman', defaultRate: 0.4 },
+          { pool: 'pool1Cryptoman', defaultRate: 0.4 },
+          { pool: 'pool3Cryptoman', defaultRate: 0.2 }
         ]
       }
     }
   },
   1: {
-    name: 'Agent Type 1',
+    name: 'MonNurse',
     packages: {
       0: {
         name: 'Elite Package',
         availablePools: [
-          { pool: 'pool3', defaultRate: 0.3 },
-          { pool: 'pool4', defaultRate: 0.3 },
-          { pool: 'pool5', defaultRate: 0.4 }
+          { pool: 'pool1Nurse', defaultRate: 0.3 },
+          { pool: 'pool2Nurse', defaultRate: 0.3 },
+          { pool: 'pool3Nurse', defaultRate: 0.4 }
         ]
       },
       1: {
         name: 'Standard Package',
         availablePools: [
-          { pool: 'pool1', defaultRate: 0.4 },
-          { pool: 'pool2', defaultRate: 0.4 },
-          { pool: 'pool5', defaultRate: 0.2 }
+          { pool: 'pool1Nurse', defaultRate: 0.4 },
+          { pool: 'pool3Nurse', defaultRate: 0.4 },
+          { pool: 'pool2Nurse', defaultRate: 0.2 }
         ]
       },
       2: {
         name: 'Standard Package',
         availablePools: [
-          { pool: 'pool2', defaultRate: 0.4 },
-          { pool: 'pool4', defaultRate: 0.4 },
-          { pool: 'pool5', defaultRate: 0.2 }
+          { pool: 'pool2Nurse', defaultRate: 0.4 },
+          { pool: 'pool1Nurse', defaultRate: 0.4 },
+          { pool: 'pool3Nurse', defaultRate: 0.2 }
         ]
       }
     }
   },
   2: {
-    name: 'Agent Type 2',
+    name: 'MonAnime',
     packages: {
       0: {
         name: 'Elite Package',
         availablePools: [
-          { pool: 'pool5', defaultRate: 0.3 },
-          { pool: 'pool2', defaultRate: 0.3 },
-          { pool: 'pool1', defaultRate: 0.4 }
+          { pool: 'pool3Anime', defaultRate: 0.3 },
+          { pool: 'pool2Anime', defaultRate: 0.3 },
+          { pool: 'pool1Anime', defaultRate: 0.4 }
         ]
       },
       1: {
         name: 'Standard Package',
         availablePools: [
-          { pool: 'pool2', defaultRate: 0.4 },
-          { pool: 'pool3', defaultRate: 0.4 },
-          { pool: 'pool1', defaultRate: 0.2 }
+          { pool: 'pool2Anime', defaultRate: 0.4 },
+          { pool: 'pool3Anime', defaultRate: 0.4 },
+          { pool: 'pool1Anime', defaultRate: 0.2 }
         ]
       },
       2: {
         name: 'Standard Package',
         availablePools: [
-          { pool: 'pool4', defaultRate: 0.4 },
-          { pool: 'pool5', defaultRate: 0.4 },
-          { pool: 'pool1', defaultRate: 0.2 }
+          { pool: 'pool2Anime', defaultRate: 0.4 },
+          { pool: 'pool1Anime', defaultRate: 0.4 },
+          { pool: 'pool3Anime', defaultRate: 0.2 }
         ]
       }
     }
