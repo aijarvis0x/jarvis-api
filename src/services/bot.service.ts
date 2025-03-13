@@ -679,13 +679,21 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
       { rare: covertType(type) }
     ])
 
-    const backgrounds = [
-      "https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/backgrounds/Knight_2.png",
-      "https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/backgrounds/Knight.png",
-      "https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/backgrounds/King.png"
-    ]
+    // const backgrounds = [
+    //   "https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/backgrounds/Knight_2.png",
+    //   "https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/backgrounds/Knight.png",
+    //   "https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/backgrounds/King.png"
+    // ]
 
-    const background = backgrounds[Math.round(Math.random() * 6) %3]
+    // const background = backgrounds[Math.round(Math.random() * 6) %3]
+
+    const backgroundMapping = {
+      0: "https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/backgrounds/cryptoman.png",
+      1: "https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/backgrounds/nurse.png",
+      2: "https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/backgrounds/anime.png"
+    }
+
+    const background = backgroundMapping[params.agentType]
 
 
     const insertQuery = `
