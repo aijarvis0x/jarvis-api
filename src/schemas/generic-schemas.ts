@@ -8,7 +8,7 @@ export const responseErrorSchema = z.object({
 
 export const paginationSchema = z.object({
   page: z.coerce.number().optional().default(1).catch(1),
-  // perPage: z.coerce.number().min(1).max(100).optional().default(10).catch(10),
+  perPage: z.coerce.number().min(1).max(50).optional().default(10).catch(10),
 })
 
 export const uuidParamSchema = z.object({
