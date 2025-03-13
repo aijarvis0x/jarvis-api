@@ -97,8 +97,12 @@ export const build = async (
   app.setSerializerCompiler(serializerCompiler)
 
   app.register(cors, {
-    origin: ["http://localhost:5173",
-      "http://127.0.0.1:5173", "https://test.aijarvis.xyz", "https://app.aijarvis.xyz"],
+    origin: [
+      "http://localhost:5173",
+      "http://127.0.0.1:5173", 
+      "http://localhost:5174", 
+      "http://127.0.0.1:5174", 
+      "https://test.aijarvis.xyz", "https://app.aijarvis.xyz"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"]
