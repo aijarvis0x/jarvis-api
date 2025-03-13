@@ -52,14 +52,14 @@ export default async (app: AppInstance) => {
     onRequest: optionalAuthenticate,
     handler: async (request, reply) => {
       try {
-        const { search, page = 1, limit = 20 } = request.query as {
+        const { search, page = 1, perPage = 20 } = request.query as {
           search?: string;
           page: number;
-          limit: number;
+          perPage: number;
         };
 
         const { userId } = request;
-        const offset = (page - 1) * limit;
+        const offset = (page - 1) * perPage;
 
         let whereClauses: string[] = [];
         let values: (string | number | boolean)[] = [];
@@ -98,7 +98,7 @@ export default async (app: AppInstance) => {
           LIMIT $${index} OFFSET $${index + 1}
         `;
 
-        values.push(limit, offset);
+        values.push(perPage, offset);
 
 
         const conversationsResult = await db.pool.query(conversationsQuery, values)
@@ -110,7 +110,7 @@ export default async (app: AppInstance) => {
             conversations: conversationsResult.rows,
             pagination: {
               currentPage: page,
-              limit
+              perPage
             },
           },
         });

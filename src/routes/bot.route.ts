@@ -248,8 +248,8 @@ export default async (app: AppInstance) => {
     onRequest: app.authenticate,
     handler: async (request, reply) => {
       const { userId } = request
-      const { page = 1 } = request.query as any
-      const limit = 10
+      const { page = 1, perPage } = request.query as any
+      const limit = perPage
       let bots = await getListBots(userId, page, limit)
 
       return reply.status(200).send({

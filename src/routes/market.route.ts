@@ -18,14 +18,15 @@ export default async (app: AppInstance) => {
     onRequest: optionalAuthenticate,
     handler: async (request, reply) => {
       try {
-        const { search, isOwner, categoryIds, page = 1 } = request.query as {
+        const { search, isOwner, categoryIds, page = 1, perPage } = request.query as {
           search?: string;
           isOwner?: boolean;
           categoryIds?: number[];
           page: number;
+          perPage: number
         };
 
-        const limit = 20
+        const limit = perPage
         const { userId } = request;
         const offset = (page - 1) * limit;
 
@@ -124,8 +125,8 @@ export default async (app: AppInstance) => {
     onRequest: app.authenticate,
     handler: async (request, reply) => {
       try {
-        const { page = 1 } = request.query as { page: number };
-        const limit = 20;
+        const { page = 1, perPage } = request.query as { page: number, perPage: number };
+        const limit = perPage;
         const offset = (page - 1) * limit;
         const {userId} = request;
 
@@ -187,8 +188,8 @@ export default async (app: AppInstance) => {
     onRequest: app.authenticate,
     handler: async (request, reply) => {
       try {
-        const { page = 1 } = request.query as { page: number };
-        const limit = 20;
+        const { page = 1, perPage } = request.query as { page: number, perPage: number };
+        const limit = perPage;
         const offset = (page - 1) * limit;
         const {userId} = request;
 

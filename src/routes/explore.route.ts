@@ -27,8 +27,8 @@ export default async (app: AppInstance) => {
       const { userId } = request;
 
       try {
-        const { page = 1 } = request.query;
-        const limit = 20;
+        const { page = 1, perPage } = request.query;
+        const limit = perPage;
         const offset = (page - 1) * limit;
 
         const result = await getPhotoFilterBot(userId, limit, offset, page);
@@ -57,8 +57,8 @@ export default async (app: AppInstance) => {
       const { timeTrend = 'all' } = request.query;
 
       try {
-        const { page = 1 } = request.query;
-        const limit = 20;
+        const { page = 1, perPage } = request.query;
+        const limit = perPage;
         const offset = (page - 1) * limit;
 
         const result = await getTrendingBot(userId, limit, offset, page, timeTrend);
@@ -86,8 +86,8 @@ export default async (app: AppInstance) => {
       const { userId } = request;
 
       try {
-        const { page = 1 } = request.query;
-        const limit = 20;
+        const { page = 1, perPage } = request.query;
+        const limit = perPage;
         const offset = (page - 1) * limit;
 
         const result = await getFunAndMemeBot(
@@ -120,8 +120,8 @@ export default async (app: AppInstance) => {
       const { userId } = request;
 
       try {
-        const { page = 1 } = request.query;
-        const limit = 20;
+        const { page = 1, perPage } = request.query;
+        const limit = perPage;
         const offset = (page - 1) * limit;
 
         const result = await getTopPickBot(
@@ -154,8 +154,8 @@ export default async (app: AppInstance) => {
       const { userId } = request;
 
       try {
-        const { page = 1 } = request.query;
-        const limit = 20;
+        const { page = 1, perPage } = request.query;
+        const limit = perPage;
         const offset = (page - 1) * limit;
 
         const result = await getAutomationAndProductivityBot(
@@ -188,8 +188,8 @@ export default async (app: AppInstance) => {
       const { userId } = request;
 
       try {
-        const { page = 1 } = request.query;
-        const limit = 20;
+        const { page = 1, perPage } = request.query;
+        const limit = perPage;
         const offset = (page - 1) * limit;
 
         const result = await getNewListBot(
@@ -248,8 +248,8 @@ export default async (app: AppInstance) => {
       const { userId } = request;
 
       try {
-        const { page = 1 } = request.query;
-        const limit = 20;
+        const { page = 1, perPage } = request.query;
+        const limit = perPage;
         const offset = (page - 1) * limit;
 
         const result = await getFavoriteAndTalkedBot(
