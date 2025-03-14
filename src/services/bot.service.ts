@@ -661,9 +661,9 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
     }
     const girlDescription = "The degen crypto girl – smart, sexy, and always one step ahead. She trades with confidence, flips NFTs like a pro, and laughs in the face of liquidations. Sharp, fearless, and a little dangerous—she’s not just here to play, she’s here to win. Think you can handle her?"
     const descriptionMapping = {
-      0: "Your crypto nurse – soft hands, sharp mind. She knows your highs, your lows, and every chart-induced heartbreak in between. A soothing voice when the market bleeds, a playful tease when the gains roll in—she always gives you exactly what you need. Sweet, fiery, and just a little too tempting. Using Allora Network for everyday trading.",
-      1: girlDescription,
-      2: "The Ultimate Degen Trader – Risk It All, Win It All. 🚀🔥 A high-stakes degen who thrives on futures, stacks rare NFTs, and holds memes like gold. Sharp in the market, smooth in real life—serious when it counts, but always a romantic at heart.",
+      0: "The Ultimate Degen Trader – Risk It All, Win It All. 🚀🔥 A high-stakes degen who thrives on futures, stacks rare NFTs, and holds memes like gold. Sharp in the market, smooth in real life—serious when it counts, but always a romantic at heart.",
+      1: "Your crypto nurse – soft hands, sharp mind. She knows your highs, your lows, and every chart-induced heartbreak in between. A soothing voice when the market bleeds, a playful tease when the gains roll in—she always gives you exactly what you need. Sweet, fiery, and just a little too tempting. Using Allora Network for everyday trading.",
+      2: girlDescription,
     }
 
     const names = {
