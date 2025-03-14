@@ -634,36 +634,37 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
       let _type = ''
 
       switch (typeInput) {
-        case "pool1":
+        case "pool1Cryptoman":
+        case "pool2Cryptoman":
           _type = "Comon"
           break;
-        case "pool2":
+        case "pool1Nurse":
+        case "pool3Nurse":
           _type = "Rare"
-
           break;
-        case "pool3":
+        case "pool1Anime":
+        case "pool2Nurse":
           _type = "Epic"
-
           break;
-        case "pool4":
+        case "pool2Anime":
           _type = "Legendary"
-
           break;
-        case "pool5":
+        case "pool3Cryptoman":
+        case "pool3Anime":
           _type = "Mythic"
           break;
-
         default:
+          _type = "Mythic"
           break;
       }
 
       return _type
     }
-    const girlDescription = "The degen crypto girl – smart, sexy, and always one step ahead. She trades with confidence, flips NFTs like a pro, and laughs in the face of liquidations. Sharp, fearless, and a little dangerous—she’s not just here to play, she’s here to win. Think you can handle her?"
+    const animeDescription = "The degen crypto girl – smart, sexy, and always one step ahead. She trades with confidence, flips NFTs like a pro, and laughs in the face of liquidations. Sharp, fearless, and a little dangerous—she’s not just here to play, she’s here to win. Think you can handle her?"
     const descriptionMapping = {
       0: "The Ultimate Degen Trader – Risk It All, Win It All. 🚀🔥 A high-stakes degen who thrives on futures, stacks rare NFTs, and holds memes like gold. Sharp in the market, smooth in real life—serious when it counts, but always a romantic at heart.",
       1: "Your crypto nurse – soft hands, sharp mind. She knows your highs, your lows, and every chart-induced heartbreak in between. A soothing voice when the market bleeds, a playful tease when the gains roll in—she always gives you exactly what you need. Sweet, fiery, and just a little too tempting. Using Allora Network for everyday trading.",
-      2: girlDescription,
+      2: animeDescription,
     }
 
     const names = {
@@ -672,7 +673,7 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
       2: "MonAnime",
     }
     const getValue = (obj: any, key: number, defaultValue: any) => obj?.[key] ?? defaultValue;
-    const description = getValue(descriptionMapping, params.agentType, girlDescription)
+    const description = getValue(descriptionMapping, params.agentType, animeDescription)
     const name = getValue(names, params.agentType, "MonCryptoMan") + ` #${params.nftId}`
 
     const attributes = JSON.stringify([
