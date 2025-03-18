@@ -258,5 +258,90 @@ export default async (app: AppInstance) => {
       }
     },
   });
+  
+  app.get("/activities", {
+    schema: {
+      tags: ["Market"],
+      querystring: paginationSchema,
+    },
+    onRequest: app.authenticate,
+    handler: async (request, reply) => {
+      try {
+        const { page = 1, perPage } = request.query as { page: number, perPage: number };
+        const limit = perPage;
+        const offset = (page - 1) * limit;
+        const {userId} = request;
+
+        // Điều kiện WHERE trước khi JOIN
+        // const whereClauses: string[] = [
+        //   `b.state = '${BotState.Created}'`,
+        //   "b.user_id = $1",
+        //   `COALESCE(o.state, 'cancelled') != 'listed'`
+        // ];
+        const values: any[] = [];
+
+        const baseQuery = `
+          SELECT
+            *
+          FROM (
+            SELECT
+              ROW_NUMBER() OVER(PARTITION BY b.id ORDER BY t.confirmed_at DESC) AS rank,
+              b.name,
+              b.id AS bot_id,
+              b.category_ids,
+              o.price,
+              t.sender,
+              t.recipient,
+              t.confirmed_at
+            FROM (
+              SELECT
+                events->>'listingId' AS event_listing_id,
+                logs->>'eventName' AS event_name,
+                confirmed_at
+              FROM transactions t 
+            ) t 
+            INNER JOIN orders o ON t.event_listing_id = o.order_id
+            INNER JOIN bots b ON o.nft_id = b.nft_id
+          ) a
+          WHERE a.rank = 1
+        `
+
+        const activitiesQuery = `
+          SELECT *
+          FROM (${baseQuery}) a
+          ORDER BY a.confirmed_at DESC
+          LIMIT $1 OFFSET $2
+        `;
+
+        values.push(limit, offset);
+
+        const countQuery = `
+          SELECT COUNT(*) AS total
+          FROM (${baseQuery}) a
+        `;
+
+        const countValues = [];
+
+        const [activitiesResult, countResult] = await Promise.all([
+          db.pool.query(activitiesQuery, values),
+          db.pool.query(countQuery, countValues),
+        ]);
+
+        const totalCount = parseInt(countResult.rows[0].total, 10);
+        const totalPages = Math.ceil(totalCount / limit);
+
+        return reply.status(200).send({
+          message: "OK",
+          data: {
+            activities: activitiesResult.rows,
+            pagination: { currentPage: page, totalPages, totalCount },
+          },
+        });
+      } catch (error) {
+        console.error(error);
+        return reply.status(500).send({ error: "Internal Server Error" });
+      }
+    },
+  });
 
 }
