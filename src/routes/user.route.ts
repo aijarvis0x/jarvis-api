@@ -16,7 +16,7 @@ export default async (app: AppInstance) => {
         schema: {
             tags: ["User"],
         },
-        onRequest: optionalAuthenticate,
+        onRequest: app.authenticate,
         handler: async (request, reply) => {
 
             try {
