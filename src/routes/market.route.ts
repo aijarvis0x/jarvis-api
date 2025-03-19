@@ -264,7 +264,7 @@ export default async (app: AppInstance) => {
       tags: ["Market"],
       querystring: paginationSchema,
     },
-    onRequest: app.authenticate,
+    onRequest: optionalAuthenticate,
     handler: async (request, reply) => {
       try {
         const { page = 1, perPage } = request.query as { page: number, perPage: number };
