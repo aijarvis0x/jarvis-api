@@ -29,7 +29,8 @@ export default async (app: AppInstance) => {
           "background": bot?.background,
           "name": bot?.name ?? "...",
           "attributes": bot?.attributes,
-          "category_ids": bot?.category_ids
+          "category_ids": bot?.category_ids,
+          "avatar": bot?.avatar
         })
       } catch (error) {
         console.log(error)

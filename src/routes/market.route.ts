@@ -289,6 +289,7 @@ export default async (app: AppInstance) => {
               b.name,
               b.id AS bot_id,
               b.category_ids,
+              b.avatar,
               o.price,
               t.sender,
               t.recipient,
