@@ -304,8 +304,8 @@ export default async (app: AppInstance) => {
                 recipient
               FROM transactions t 
             ) t 
-            LEFT JOIN orders o ON t.event_listing_id = o.order_id
-            LEFT JOIN bots b ON o.nft_id = b.nft_id
+            INNER JOIN orders o ON t.event_listing_id = o.order_id
+            INNER JOIN bots b ON o.nft_id = b.nft_id
           ) a
           WHERE a.rank = 1
         `
