@@ -292,7 +292,9 @@ export default async (app: AppInstance) => {
               o.price,
               t.sender,
               t.recipient,
-              t.confirmed_at
+              t.confirmed_at,
+              t.event_name,
+              t.event_listing_id
             FROM (
               SELECT
                 events->>'listingId' AS event_listing_id,
