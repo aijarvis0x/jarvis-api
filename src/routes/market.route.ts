@@ -286,10 +286,15 @@ export default async (app: AppInstance) => {
           FROM (
             SELECT
               ROW_NUMBER() OVER(PARTITION BY b.id ORDER BY t.confirmed_at DESC) AS rank,
-              b.name,
               b.id AS bot_id,
-              b.category_ids,
+              b.nft_id,
+              b.description,
               b.avatar,
+              b.background,
+              b.name,
+              b.attributes,
+              b.category_ids,
+              'https://app.aijarvis.xyz/ai-agents/' || b.id AS external_url,
               o.price,
               t.sender,
               t.recipient,
