@@ -297,7 +297,9 @@ export default async (app: AppInstance) => {
               SELECT
                 events->>'listingId' AS event_listing_id,
                 logs->>'eventName' AS event_name,
-                confirmed_at
+                confirmed_at,
+                sender,
+                recipient
               FROM transactions t 
             ) t 
             INNER JOIN orders o ON t.event_listing_id = o.order_id
