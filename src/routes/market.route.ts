@@ -1,4 +1,4 @@
-import { BotState } from "../constants.js";
+import { BotState, OrderState } from "../constants.js";
 import { db } from "../lib/pg.js";
 import { optionalAuthenticate } from "../plugins/optional-auth.js";
 import { paginationSchema } from "../schemas/generic-schemas.js";
@@ -197,7 +197,7 @@ export default async (app: AppInstance) => {
         const whereClauses: string[] = [
           `b.state = '${BotState.Created}'`,
           "b.user_id = $1",
-          `COALESCE(o.state, 'cancelled') != 'listed'`
+          `COALESCE(o.state, 'cancelled') != '${OrderState.Listed}'`
         ];
         const values: any[] = [userId];
 

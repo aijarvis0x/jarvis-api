@@ -1,12 +1,13 @@
-import { BotState } from "../constants.js"
+import { BotState, MarketFilter } from "../constants.js"
 import { dayjs } from "../lib/date.js"
 import { optionalAuthenticate } from "../plugins/optional-auth.js"
 import {
   updateBotInfoSchema,
   uploadBotAvatarSchema,
-  publishBotSchema
+  publishBotSchema,
+  myAgentQuery
 } from "../schemas/bot.schema.js"
-import { findBotById, updateBotBackground, updateBotById, findBotByIdNonOwner, getListBots, publishBot } from "../services/bot.service.js"
+import { findBotById, updateBotBackground, updateBotById, findBotByIdNonOwner, getListBots, publishBot, getListBotInBag, getListBotListed } from "../services/bot.service.js"
 import { findOrderListedOfBot } from "../services/order.service.js"
 
 
@@ -244,13 +245,32 @@ export default async (app: AppInstance) => {
   app.get("/my-agents", {
     schema: {
       tags: ["Bot"],
+      querystring: myAgentQuery.querystring
     },
     onRequest: app.authenticate,
     handler: async (request, reply) => {
       const { userId } = request
-      const { page = 1, perPage } = request.query as any
+      const { page = 1, perPage, filterType = MarketFilter.All } = request.query as any
       const limit = perPage
-      let bots = await getListBots(userId, page, limit)
+      let bots;
+
+      switch (filterType) {
+        case MarketFilter.All:
+          bots = await getListBots(userId, page, limit);
+          break;
+
+        case MarketFilter.InBag:
+          bots = await getListBotInBag(userId, page, limit);
+          break;
+        
+        case MarketFilter.Listed:
+          bots = await getListBotListed(userId, page, limit);
+          break;
+      
+        default:
+          bots = await getListBots(userId, page, limit);
+          break;
+      }
 
       return reply.status(200).send({
         message: "OK",
