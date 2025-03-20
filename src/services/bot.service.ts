@@ -323,6 +323,116 @@ export const getListBots = async (userId: bigint, page: number, limit: number) =
   })
 };
 
+export const getListBotInBag = async (userId: bigint, page: number, limit: number) => {
+  const offset = (page - 1) * limit;
+
+  const whereClauses: string[] = [
+    `b.state = '${BotState.Created}'`,
+    "b.user_id = $1",
+    `COALESCE(o.state, 'cancelled') != '${OrderState.Listed}'`
+  ];
+
+  const baseQuery = `
+    SELECT 
+      b.avatar,
+      b.id,
+      b.name,
+      b.background,
+      b.description,
+      b.nft_id,
+      b.attributes,
+      b.category_ids,
+      b.state,
+      b.is_published,
+      b.updated_at,
+      jsonb_build_object(
+        'orderId', o.order_id,
+        'price', o.price,
+        'state', o.state
+      ) AS order
+    FROM bots b
+    LEFT JOIN (
+      SELECT * FROM (
+        SELECT
+          *,
+          ROW_NUMBER() OVER(PARTITION BY o.nft_id ORDER BY o.updated_at DESC) AS rank
+        FROM orders o
+      ) o WHERE o.rank = 1
+    ) o ON o.bot_id = b.id
+    JOIN users u ON b.user_id = u.id
+    WHERE ${whereClauses.join(" AND ")}
+  `
+
+  const statement: QueryConfig = {
+    name: "getListBots",
+    text: `
+      SELECT
+        *
+      FROM (${baseQuery}) a
+      ORDER BY a.updated_at DESC
+      LIMIT $2 OFFSET $3;
+    `,
+    values: [userId, limit, offset],
+  };
+
+
+  let bots = await db.pool.query(statement)
+    .then((result) => result.rows ?? []);
+
+  return bots
+};
+
+export const getListBotListed = async (userId: bigint, page: number, limit: number) => {
+  const offset = (page - 1) * limit;
+
+  const whereClauses: string[] = [
+    `o.state = '${OrderState.Listed}'`,
+    "o.seller_id = $1",
+  ];
+
+  const baseQuery = `
+    SELECT 
+      b.avatar,
+      b.id,
+      b.name,
+      b.background,
+      b.description,
+      b.nft_id,
+      b.attributes,
+      b.category_ids,
+      b.state,
+      b.is_published,
+      b.updated_at,
+      jsonb_build_object(
+        'orderId', o.order_id,
+        'price', o.price,
+        'state', o.state
+      ) AS order
+    FROM orders o
+    JOIN bots b ON o.bot_id = b.id
+    JOIN users u ON b.user_id = u.id
+    WHERE ${whereClauses.join(" AND ")}
+  `
+
+  const statement: QueryConfig = {
+    name: "getListBots",
+    text: `
+      SELECT
+        *
+      FROM (${baseQuery}) a
+      ORDER BY a.updated_at DESC
+      LIMIT $2 OFFSET $3;
+    `,
+    values: [userId, limit, offset],
+  };
+
+
+  let bots = await db.pool.query(statement)
+    .then((result) => result.rows ?? []);
+
+  return bots
+};
+
 
 export const updateBotAvatar = async (botId: BotId, avatarUrl: string): Promise<void> => {
   const query = `
