@@ -364,7 +364,7 @@ export const getListBotInBag = async (userId: bigint, page: number, limit: numbe
   `
 
   const statement: QueryConfig = {
-    name: "getListBots",
+    name: "getListBotInBag",
     text: `
       SELECT
         *
@@ -415,7 +415,7 @@ export const getListBotListed = async (userId: bigint, page: number, limit: numb
   `
 
   const statement: QueryConfig = {
-    name: "getListBots",
+    name: "getListBotListed",
     text: `
       SELECT
         *
