@@ -39,3 +39,9 @@ export enum OrderState {
   Cancelled = 'cancelled',
   Sold = 'purchased'
 }
+
+export enum MarketFilter {
+  All = 'All',
+  Listed = 'Listed',
+  InBag = 'InBag'
+}

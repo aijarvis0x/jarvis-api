@@ -1,5 +1,7 @@
 import { z } from "zod"
 import { AdjectivesType, ModelProvider, PluginType, VoiceType } from "../services/bot.service.js";
+import { paginationSchema } from "./generic-schemas.js";
+import { MarketFilter } from "../constants.js";
 
 const MAX_BIO_LORE_LENGTH = 30;
 const MAX_KNOWLEDGE_LENGTH = 100;
@@ -90,3 +92,11 @@ export const deployBotReqSchema = z.object({
 export const publishBotSchema = z.object({
   id: z.string()
 })
+
+export const myAgentQuery = {
+  querystring: paginationSchema.merge(
+    z.object({
+      filterType: z.enum([MarketFilter.All, MarketFilter.Listed, MarketFilter.InBag]).default(MarketFilter.All),
+    })
+  ),
+} as const

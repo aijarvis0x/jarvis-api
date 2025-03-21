@@ -1,4 +1,4 @@
-import { BotState } from "../constants.js";
+import { BotState, OrderState } from "../constants.js";
 import { db } from "../lib/pg.js";
 import { optionalAuthenticate } from "../plugins/optional-auth.js";
 import { paginationSchema } from "../schemas/generic-schemas.js";
@@ -197,7 +197,7 @@ export default async (app: AppInstance) => {
         const whereClauses: string[] = [
           `b.state = '${BotState.Created}'`,
           "b.user_id = $1",
-          `COALESCE(o.state, 'cancelled') != 'listed'`
+          `COALESCE(o.state, 'cancelled') != '${OrderState.Listed}'`
         ];
         const values: any[] = [userId];
 
@@ -264,7 +264,7 @@ export default async (app: AppInstance) => {
       tags: ["Market"],
       querystring: paginationSchema,
     },
-    onRequest: app.authenticate,
+    onRequest: optionalAuthenticate,
     handler: async (request, reply) => {
       try {
         const { page = 1, perPage } = request.query as { page: number, perPage: number };
@@ -286,18 +286,28 @@ export default async (app: AppInstance) => {
           FROM (
             SELECT
               ROW_NUMBER() OVER(PARTITION BY b.id ORDER BY t.confirmed_at DESC) AS rank,
-              b.name,
               b.id AS bot_id,
+              b.nft_id,
+              b.description,
+              b.avatar,
+              b.background,
+              b.name,
+              b.attributes,
               b.category_ids,
+              'https://app.aijarvis.xyz/ai-agents/' || b.id AS external_url,
               o.price,
               t.sender,
               t.recipient,
-              t.confirmed_at
+              t.confirmed_at,
+              t.event_name,
+              t.event_listing_id
             FROM (
               SELECT
                 events->>'listingId' AS event_listing_id,
                 logs->>'eventName' AS event_name,
-                confirmed_at
+                confirmed_at,
+                sender,
+                recipient
               FROM transactions t 
             ) t 
             INNER JOIN orders o ON t.event_listing_id = o.order_id
