@@ -96,19 +96,19 @@ export const build = async (
   app.setValidatorCompiler(validatorCompiler)
   app.setSerializerCompiler(serializerCompiler)
 
-  app.register(cors, {
-    origin: [
-      "http://localhost:5173",
-      "http://127.0.0.1:5173", 
-      "http://localhost:5174", 
-      "http://127.0.0.1:5174", 
-      "https://test.aijarvis.xyz", "https://app.aijarvis.xyz"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"]
-  });
+  // app.register(cors, {
+  //   origin: [
+  //     "http://localhost:5173",
+  //     "http://127.0.0.1:5173",
+  //     "http://localhost:5174",
+  //     "http://127.0.0.1:5174",
+  //     "https://test.aijarvis.xyz", "https://app.aijarvis.xyz"],
+  //   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  //   credentials: true,
+  //   allowedHeaders: ["Content-Type", "Authorization"]
+  // });
 
-  // app.register(cors)
+  app.register(cors)
   app.register(fastifySensible)
   app.register(fastifyCookie, {
     secret: env.ENCRYPTION_KEY,
