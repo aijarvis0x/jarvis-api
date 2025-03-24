@@ -5,9 +5,11 @@ import {
   updateBotInfoSchema,
   uploadBotAvatarSchema,
   publishBotSchema,
-  myAgentQuery
+  myAgentQuery,
+  commentBotSchema,
+  getCommentsQuery
 } from "../schemas/bot.schema.js"
-import { findBotById, updateBotBackground, updateBotById, findBotByIdNonOwner, getListBots, publishBot, getListBotInBag, getListBotListed } from "../services/bot.service.js"
+import { findBotById, updateBotBackground, updateBotById, findBotByIdNonOwner, getListBots, publishBot, getListBotInBag, getListBotListed, insertComment, getAllCommentBot } from "../services/bot.service.js"
 import { findOrderListedOfBot } from "../services/order.service.js"
 
 
@@ -311,6 +313,50 @@ export default async (app: AppInstance) => {
       await publishBot(bot.id)
       return reply.status(200).send({
         message: "OK"
+      })
+    },
+  })
+
+  app.post("/comments/:id", {
+    schema: {
+      tags: ["Bot"],
+      body: commentBotSchema
+    },
+    onRequest: app.authenticate,
+    handler: async (request, reply) => {
+      const { id } = request.params as any;
+      let { userId } = request;
+      const {text} = request.body;
+
+      let comment = await insertComment(userId, text, id)
+      return reply.status(200).send({
+        message: "OK",
+        data: {
+          commentId: comment
+        }
+      })
+    },
+  })
+
+  app.get("/comments/:id", {
+    schema: {
+      tags: ["Bot"],
+      querystring: getCommentsQuery.querystring
+    },
+    onRequest: optionalAuthenticate,
+    handler: async (request, reply) => {
+      const { id } = request.params as any;
+      const { page = 1, perPage } = request.query as any
+      const limit = perPage
+
+      let comments = await getAllCommentBot(id, page, limit)
+      return reply.status(200).send({
+        message: "OK",
+        data: {
+          comments: comments,
+          page, 
+          limit
+        }
       })
     },
   })

@@ -1,4 +1,4 @@
-import type { Pool, PoolClient, QueryConfig } from "pg"
+import { Pool, PoolClient, QueryConfig } from "pg"
 import { db } from "../lib/pg.js"
 import { BotState, OrderState } from "../constants.js"
 import { AWS_REGION, AWS_SQS_CREATE_AI_AGENT, MINT_AI_FEE } from "../env.js"
@@ -842,4 +842,69 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
     console.log(`craete bot error `, error)
     throw error
   }
+}
+
+export const insertComment = async (userId, text, botId) => {
+  try {
+    const insertQuery = `
+      INSERT INTO comment_bot
+        (userId, botId, text)
+      VALUES
+        ($1, $2, $3)
+      RETURNING id;
+    `;
+
+    const values = [
+      userId,
+      botId,
+      text
+    ]
+
+    const result = await db.pool.query(insertQuery, values)
+    return result
+  } catch (error) {
+    console.log(error);
+    throw error
+  }
+
+}
+
+export const getAllCommentBot = async (botId, page, limit) => {
+  const offset = (page - 1) * limit;
+  try {
+    const baseQuery = `
+      SELECT
+        cb.id as comment_id,
+        cb.text,
+        cb.created_at,
+        cb.updated_at,
+        u.name,
+        u.avatar
+      FROM comment_bot cb
+      LEFT JOIN bots b ON cb.bot_id = b.id
+      LEFT JOIN users u ON cb.user_id = u.id
+      WHERE cb.bot_id = $1
+    `;
+
+    const query = `
+      SELECT
+        *
+      FROM (${baseQuery}) a
+      ORDER BY a.updated_at DESC
+      LIMIT $2 OFFSET $3
+    `
+
+    const values = [
+      botId,
+      limit,
+      offset
+    ]
+
+    const result = await db.pool.query(query, values)
+    return result
+  } catch (error) {
+    console.log(error);
+    throw error
+  }
+
 }
