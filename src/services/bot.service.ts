@@ -744,23 +744,23 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
       let _type = ''
 
       switch (typeInput) {
-        case "pool1Cryptoman":
-        case "pool2Cryptoman":
+        case "diamondCryptoman":
+        case "goldenCryptoman":
           _type = "Common"
           break;
-        case "pool1Nurse":
-        case "pool3Nurse":
+        case "diamondNurse":
+        case "silverNurse":
           _type = "Rare"
           break;
-        case "pool1Anime":
-        case "pool2Nurse":
+        case "diamondAnime":
+        case "goldenNurse":
           _type = "Epic"
           break;
-        case "pool2Anime":
+        case "goldenAnime":
           _type = "Legendary"
           break;
-        case "pool3Cryptoman":
-        case "pool3Anime":
+        case "silverCryptoman":
+        case "silverAnime":
           _type = "Mythic"
           break;
         default:

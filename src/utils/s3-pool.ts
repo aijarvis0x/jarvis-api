@@ -14,41 +14,41 @@ dotenv.config();
 // Configuration for image pools
 const POOL_CONFIG = {
   // 5 different pool types
-  pool1Cryptoman: {
+  diamondCryptoman: {
     bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'pool1Cryptoman/'
+    folderPrefix: 'assets/diamondCryptoman/'
   },
-  pool2Cryptoman: {
+  goldenCryptoman: {
     bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'pool2Cryptoman/'
+    folderPrefix: 'assets/goldenCryptoman/'
   },
-  pool3Cryptoman: {
+  silverCryptoman: {
     bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'pool3Cryptoman/'
+    folderPrefix: 'assets/silverCryptoman/'
   },
-  pool1Nurse: {
+  diamondNurse: {
     bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'pool1Nurse/'
+    folderPrefix: 'assets/diamondNurse/'
   },
-  pool2Nurse: {
+  goldenNurse: {
     bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'pool2Nurse/'
+    folderPrefix: 'assets/goldenNurse/'
   },
-  pool3Nurse: {
+  silverNurse: {
     bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'pool3Nurse/'
+    folderPrefix: 'assets/silverNurse/'
   },
-  pool1Anime: {
+  diamondAnime: {
     bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'pool1Anime/'
+    folderPrefix: 'assets/diamondAnime/'
   },
-  pool2Anime: {
+  goldenAnime: {
     bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'pool2Anime/'
+    folderPrefix: 'assets/goldenAnime/'
   },
-  pool3Anime: {
+  silverAnime: {
     bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'pool3Anime/'
+    folderPrefix: 'assets/silverAnime/'
   },
 
 };
@@ -61,25 +61,25 @@ const AGENT_TYPES = {
       0: {
         name: 'Mint Package',
         availablePools: [
-          { pool: 'pool1Cryptoman', defaultRate: 0.6 },
-          { pool: 'pool2Cryptoman', defaultRate: 0.3 },
-          { pool: 'pool3Cryptoman', defaultRate: 0.1 }
+          { pool: 'diamondCryptoman', defaultRate: 0.1 },
+          { pool: 'goldenCryptoman', defaultRate: 0.6 },
+          { pool: 'silverCryptoman', defaultRate: 0.3 }
         ]
       },
       1: {
         name: 'Premium Package',
         availablePools: [
-          { pool: 'pool2Cryptoman', defaultRate: 0.4 },
-          { pool: 'pool3Cryptoman', defaultRate: 0.4 },
-          { pool: 'pool1Cryptoman', defaultRate: 0.2 }
+          { pool: 'goldenCryptoman', defaultRate: 0.4 },
+          { pool: 'silverCryptoman', defaultRate: 0.4 },
+          { pool: 'diamondCryptoman', defaultRate: 0.2 }
         ]
       },
       2: {
         name: 'Premium Package',
         availablePools: [
-          { pool: 'pool2Cryptoman', defaultRate: 0.4 },
-          { pool: 'pool1Cryptoman', defaultRate: 0.4 },
-          { pool: 'pool3Cryptoman', defaultRate: 0.2 }
+          { pool: 'goldenCryptoman', defaultRate: 0.4 },
+          { pool: 'diamondCryptoman', defaultRate: 0.4 },
+          { pool: 'silverCryptoman', defaultRate: 0.2 }
         ]
       }
     }
@@ -90,25 +90,25 @@ const AGENT_TYPES = {
       0: {
         name: 'Elite Package',
         availablePools: [
-          { pool: 'pool1Nurse', defaultRate: 0.3 },
-          { pool: 'pool2Nurse', defaultRate: 0.3 },
-          { pool: 'pool3Nurse', defaultRate: 0.4 }
+          { pool: 'diamondNurse', defaultRate: 0.3 },
+          { pool: 'goldenNurse', defaultRate: 0.3 },
+          { pool: 'silverNurse', defaultRate: 0.4 }
         ]
       },
       1: {
         name: 'Standard Package',
         availablePools: [
-          { pool: 'pool1Nurse', defaultRate: 0.4 },
-          { pool: 'pool3Nurse', defaultRate: 0.4 },
-          { pool: 'pool2Nurse', defaultRate: 0.2 }
+          { pool: 'diamondNurse', defaultRate: 0.4 },
+          { pool: 'silverNurse', defaultRate: 0.4 },
+          { pool: 'goldenNurse', defaultRate: 0.2 }
         ]
       },
       2: {
         name: 'Standard Package',
         availablePools: [
-          { pool: 'pool2Nurse', defaultRate: 0.4 },
-          { pool: 'pool1Nurse', defaultRate: 0.4 },
-          { pool: 'pool3Nurse', defaultRate: 0.2 }
+          { pool: 'goldenNurse', defaultRate: 0.4 },
+          { pool: 'diamondNurse', defaultRate: 0.4 },
+          { pool: 'silverNurse', defaultRate: 0.2 }
         ]
       }
     }
@@ -119,25 +119,25 @@ const AGENT_TYPES = {
       0: {
         name: 'Elite Package',
         availablePools: [
-          { pool: 'pool3Anime', defaultRate: 0.3 },
-          { pool: 'pool2Anime', defaultRate: 0.3 },
-          { pool: 'pool1Anime', defaultRate: 0.4 }
+          { pool: 'silverAnime', defaultRate: 0.3 },
+          { pool: 'goldenAnime', defaultRate: 0.3 },
+          { pool: 'diamondAnime', defaultRate: 0.4 }
         ]
       },
       1: {
         name: 'Standard Package',
         availablePools: [
-          { pool: 'pool2Anime', defaultRate: 0.4 },
-          { pool: 'pool3Anime', defaultRate: 0.4 },
-          { pool: 'pool1Anime', defaultRate: 0.2 }
+          { pool: 'goldenAnime', defaultRate: 0.4 },
+          { pool: 'silverAnime', defaultRate: 0.4 },
+          { pool: 'diamondAnime', defaultRate: 0.2 }
         ]
       },
       2: {
         name: 'Standard Package',
         availablePools: [
-          { pool: 'pool2Anime', defaultRate: 0.4 },
-          { pool: 'pool1Anime', defaultRate: 0.4 },
-          { pool: 'pool3Anime', defaultRate: 0.2 }
+          { pool: 'goldenAnime', defaultRate: 0.4 },
+          { pool: 'diamondAnime', defaultRate: 0.4 },
+          { pool: 'silverAnime', defaultRate: 0.2 }
         ]
       }
     }
