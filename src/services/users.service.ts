@@ -7,16 +7,16 @@ export type User = {
   address?: string | null
 }
 
-export async function loggingUser(
-  address: string
+export async function createUser(
+  address: string,
+  client: PoolClient | Pool = db.pool
 ) {
-  const result = await db.pool.query(
-    `INSERT INTO users (id)
-     VALUES ($1) ON CONFLICT (id)
-   DO
-    UPDATE SET raw = EXCLUDED.raw RETURNING id`,
-    [address]
-  )
+  let name = address.slice(0, 5) + "..." + address.slice(address.length - 5, address.length)
+  const result = await client.query(
+    `INSERT INTO users (address, name)
+        VALUES ($1, $2) RETURNING *;`,
+    [address, name]
+)
 
   return result.rows[0] ?? null
 }

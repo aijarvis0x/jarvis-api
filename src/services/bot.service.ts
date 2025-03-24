@@ -6,7 +6,7 @@ import dayjs from "dayjs"
 import { sendMessage } from "../lib/sqs.js"
 import { MintNftEvent, TxStatus } from "../utils/monad-utils.js"
 import { multiConnectionTransaction } from "../lib/db/transaction.js"
-import { findUserByAddress } from "./users.service.js"
+import { createUser, findUserByAddress } from "./users.service.js"
 import { EventLog } from 'web3';
 import { selectImageFromPool } from "../utils/s3-pool.js"
 import { s3Config } from "../config/s3-config.js"
@@ -516,19 +516,20 @@ export const updateOnlyStateBot = async (props: {
 export const updateBotOwner = async (props: {
   botId: string,
   userId: string,
-  newOwner: string
-}): Promise<void> => {
+  newOwner: string,
+  blockNumber: bigint
+}, pool: PoolClient | Pool = db.pool): Promise<void> => {
   const query = `
     UPDATE bots
     SET user_id = $1, owner = $2,
         updated_at = NOW()
-    WHERE id = $3 RETURNING *;
+    WHERE id = $3 AND lastest_act <= $4 RETURNING *;
   `;
 
-  const values = [props.userId, props.newOwner, props.botId];
+  const values = [props.userId, props.newOwner, props.botId, props.blockNumber];
 
   try {
-    await db.pool.query(query, values);
+    await pool.query(query, values);
   } catch (error) {
     throw error;
   }
@@ -653,9 +654,11 @@ export const confirmedMintBot = async (
             throw new Error("transaction existed. Tx: " + String(eventLog?.transactionHash))
           }
 
-          const owner = await findUserByAddress(event.owner, pgClient)
+          let owner = await findUserByAddress(event.owner, pgClient)
 
-          if (!owner) throw new Error("Owner does't exist")
+          if (!owner) {
+            owner = await createUser(String(event.owner), pgClient)
+          }
 
           //create bot
           const botId = await createBot(pgClient, { nftId: String(event.tokenId), owner: event.owner, ownerId: BigInt(owner.id), agentType: Number(event.agentType), packageId: Number(event.packageId), blockNumber: BigInt(eventLog.blockNumber ?? 0) })
@@ -876,4 +879,73 @@ export const getAllCommentBot = async (botId, page, limit) => {
     throw error
   }
 
+}
+
+
+
+export const updateNftOwner = async (eventLog: EventLog) => {
+  try {
+    //create bot
+    await multiConnectionTransaction(
+      [db.pool],
+      async (bail, clients, mongoSession) => {
+        try {
+          const [pgClient] = clients;
+
+          //check transaction existed?
+          let log = await createTransaction(pgClient, {
+            txHash: eventLog?.transactionHash,
+            status: TxStatus.CONFIRMED,
+            sender: eventLog?.returnValues?.owner,
+            recipient: eventLog.address,
+            nonce: Number(eventLog.transactionIndex),
+            logIndex: Number(eventLog.logIndex),
+            contractAddress: process.env.NFT_CONTRACT_ADDRESS,
+            blockNumber: Number(eventLog.blockNumber),
+            value: 0,
+            events: {
+              from: eventLog?.returnValues?.from,
+              to: eventLog?.returnValues?.to,
+              tokenId: Number(eventLog?.returnValues?.tokenId),
+            },
+            logs: null,
+            confirmedAt: dayjs.utc().toDate(),
+          })
+
+          let nft = await findBotByOnlyNftId(String(eventLog?.returnValues?.tokenId))
+
+          if (!nft) {
+            throw new Error("Not found Nft. tokenId: " + eventLog?.returnValues?.tokenId)
+          }
+
+
+          if (!log) {
+            throw new Error("transaction existed. Tx: " + String(eventLog?.transactionHash))
+          }
+
+          let owner = await findUserByAddress(String(eventLog?.returnValues?.to), pgClient)
+
+          if (!owner) {
+            owner = await createUser(String(eventLog?.returnValues?.to), pgClient)
+          }
+
+          //update owner nft
+          await updateBotOwner({
+            botId: nft.id,
+            userId: owner.id,
+            newOwner: String(eventLog?.returnValues?.to),
+            blockNumber: BigInt(eventLog?.blockNumber as bigint)
+          }, pgClient)
+
+
+        } catch (error) {
+          bail(new Error("Error during bot processing transaction:" + error));
+          throw error;
+        }
+      }
+    );
+
+  } catch (error) {
+    throw error
+  }
 }
