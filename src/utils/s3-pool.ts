@@ -1,7 +1,7 @@
 // image-pool-manager.js
-import {S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import AWS from 'aws-sdk';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import type { PoolClient, QueryConfig } from "pg"
 import { db } from "../lib/pg.js"
 import dotenv from 'dotenv';
@@ -11,133 +11,114 @@ dotenv.config();
 // Initialize S3 client
 
 
-// Configuration for image pools
-const POOL_CONFIG = {
-  // 5 different pool types
-  diamondCryptoman: {
-    bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'assets/diamondCryptoman/'
-  },
-  goldenCryptoman: {
-    bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'assets/goldenCryptoman/'
-  },
-  silverCryptoman: {
-    bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'assets/silverCryptoman/'
-  },
-  diamondNurse: {
-    bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'assets/diamondNurse/'
-  },
-  goldenNurse: {
-    bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'assets/goldenNurse/'
-  },
-  silverNurse: {
-    bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'assets/silverNurse/'
-  },
-  diamondAnime: {
-    bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'assets/diamondAnime/'
-  },
-  goldenAnime: {
-    bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'assets/goldenAnime/'
-  },
-  silverAnime: {
-    bucketName: process.env.AWS_S3_BUCKET,
-    folderPrefix: 'assets/silverAnime/'
-  },
+const enum RARE {
+  common = "common",
+  rare = "rare",
+  epic = "epic",
+  legendary = "legendary",
+  mythic = "mythic"
+}
 
-};
+const enum COLLECTION {
+  anime = "anime",
+  nurse = "nurse",
+  cryptoman = "cryptoman",
+}
+
+export const ASSET_COLLECTION_PATH: Record<COLLECTION, string> = {
+  [COLLECTION.anime]: "assets/anime/",
+  [COLLECTION.nurse]: 'assets/nurse/',
+  [COLLECTION.cryptoman]: 'assets/cryptoman/'
+}
+
 
 // Configure package types with their respective pools and rates
 const AGENT_TYPES = {
   0: {
-    name: 'MonCryptoMan',
+    name: 'Cryptoman',
     packages: {
       0: {
-        name: 'Mint Package',
+        name: 'Silver Package',
         availablePools: [
-          { pool: 'diamondCryptoman', defaultRate: 0.1 },
-          { pool: 'goldenCryptoman', defaultRate: 0.6 },
-          { pool: 'silverCryptoman', defaultRate: 0.3 }
+          { pool: RARE.common, defaultRate: 0.6 },
+          { pool: RARE.rare, defaultRate: 0.3 },
+          { pool: RARE.epic, defaultRate: 0.1 }
         ]
       },
       1: {
-        name: 'Premium Package',
+        name: 'Golden Package',
         availablePools: [
-          { pool: 'goldenCryptoman', defaultRate: 0.4 },
-          { pool: 'silverCryptoman', defaultRate: 0.4 },
-          { pool: 'diamondCryptoman', defaultRate: 0.2 }
+          { pool: RARE.rare, defaultRate: 0.4 },
+          { pool: RARE.epic, defaultRate: 0.4 },
+          { pool: RARE.legendary, defaultRate: 0.2 }
         ]
       },
       2: {
-        name: 'Premium Package',
+        name: 'Diamond Package',
         availablePools: [
-          { pool: 'goldenCryptoman', defaultRate: 0.4 },
-          { pool: 'diamondCryptoman', defaultRate: 0.4 },
-          { pool: 'silverCryptoman', defaultRate: 0.2 }
+          { pool: RARE.epic, defaultRate: 0.4 },
+          { pool: RARE.legendary, defaultRate: 0.4 },
+          { pool: RARE.mythic, defaultRate: 0.2 },
+
         ]
       }
     }
   },
   1: {
-    name: 'MonNurse',
+    name: 'Nurse',
     packages: {
       0: {
-        name: 'Elite Package',
+        name: 'Silver Package',
         availablePools: [
-          { pool: 'diamondNurse', defaultRate: 0.3 },
-          { pool: 'goldenNurse', defaultRate: 0.3 },
-          { pool: 'silverNurse', defaultRate: 0.4 }
+          { pool: RARE.common, defaultRate: 0.6 },
+          { pool: RARE.rare, defaultRate: 0.3 },
+          { pool: RARE.epic, defaultRate: 0.1 }
         ]
       },
       1: {
-        name: 'Standard Package',
+        name: 'Golden Package',
         availablePools: [
-          { pool: 'diamondNurse', defaultRate: 0.4 },
-          { pool: 'silverNurse', defaultRate: 0.4 },
-          { pool: 'goldenNurse', defaultRate: 0.2 }
+          { pool: RARE.rare, defaultRate: 0.4 },
+          { pool: RARE.epic, defaultRate: 0.4 },
+          { pool: RARE.legendary, defaultRate: 0.2 }
         ]
       },
       2: {
-        name: 'Standard Package',
+        name: 'Diamond Package',
         availablePools: [
-          { pool: 'goldenNurse', defaultRate: 0.4 },
-          { pool: 'diamondNurse', defaultRate: 0.4 },
-          { pool: 'silverNurse', defaultRate: 0.2 }
+          { pool: RARE.epic, defaultRate: 0.4 },
+          { pool: RARE.legendary, defaultRate: 0.4 },
+          { pool: RARE.mythic, defaultRate: 0.2 },
+
         ]
       }
     }
   },
   2: {
-    name: 'MonAnime',
+    name: 'Anime',
     packages: {
       0: {
-        name: 'Elite Package',
+        name: 'Silver Package',
         availablePools: [
-          { pool: 'silverAnime', defaultRate: 0.3 },
-          { pool: 'goldenAnime', defaultRate: 0.3 },
-          { pool: 'diamondAnime', defaultRate: 0.4 }
+          { pool: RARE.common, defaultRate: 0.6 },
+          { pool: RARE.rare, defaultRate: 0.3 },
+          { pool: RARE.epic, defaultRate: 0.1 }
         ]
       },
       1: {
-        name: 'Standard Package',
+        name: 'Golden Package',
         availablePools: [
-          { pool: 'goldenAnime', defaultRate: 0.4 },
-          { pool: 'silverAnime', defaultRate: 0.4 },
-          { pool: 'diamondAnime', defaultRate: 0.2 }
+          { pool: RARE.rare, defaultRate: 0.4 },
+          { pool: RARE.epic, defaultRate: 0.4 },
+          { pool: RARE.legendary, defaultRate: 0.2 }
         ]
       },
       2: {
-        name: 'Standard Package',
+        name: 'Diamond Package',
         availablePools: [
-          { pool: 'goldenAnime', defaultRate: 0.4 },
-          { pool: 'diamondAnime', defaultRate: 0.4 },
-          { pool: 'silverAnime', defaultRate: 0.2 }
+          { pool: RARE.epic, defaultRate: 0.4 },
+          { pool: RARE.legendary, defaultRate: 0.4 },
+          { pool: RARE.mythic, defaultRate: 0.2 },
         ]
       }
     }
@@ -145,22 +126,40 @@ const AGENT_TYPES = {
 };
 
 // Helper function to list available images in a pool
-async function listAvailableImages(s3: AWS.S3, pool) {
+async function listAvailableImages(s3: AWS.S3, agentId, pool: string) {
 
-  const { bucketName, folderPrefix } = POOL_CONFIG[pool];
+  let prefix = ""
+  switch (agentId) {
+    case 0:
+      prefix = ASSET_COLLECTION_PATH.cryptoman
+      break;
+    case 1:
+      prefix = ASSET_COLLECTION_PATH.nurse
 
+      break;
+    case 2:
+      prefix = ASSET_COLLECTION_PATH.anime
+
+      break;
+
+    default:
+      break;
+  }
+
+
+  const bucketName = process.env.AWS_S3_BUCKET
   const params = {
-    Bucket: bucketName,
-    Prefix: folderPrefix
+    Bucket: String(bucketName),
+    Prefix: String(prefix + pool)
   };
 
   const data = await s3.listObjectsV2(params).promise();
 
-	if (!data) {
-		throw new Error("no image")
-	} else if (!data.Contents) {
-		throw new Error("no content")
-	}
+  if (!data) {
+    throw new Error("no image")
+  } else if (!data.Contents) {
+    throw new Error("no content")
+  }
 
   // Extract image keys
   return data.Contents.map(item => ({
@@ -251,7 +250,7 @@ export async function selectImageFromPool(s3Config, agentId, packageId, customRa
   const selectedPool = packageConfig.availablePools[selectedPoolIndex].pool;
 
   // Get all available images from the selected pool
-  const allImages = await listAvailableImages(s3Client, selectedPool);
+  const allImages = await listAvailableImages(s3Client, agentId, selectedPool);
 
   // Filter out used images
   const availableImages = allImages.filter(image =>
@@ -268,7 +267,7 @@ export async function selectImageFromPool(s3Config, agentId, packageId, customRa
   const selectedImage = availableImages[randomIndex];
 
   // Save updated used images
-  const url = `https://${POOL_CONFIG[selectedPool].bucketName}.s3.amazonaws.com/${selectedImage.key}`
+  const url = `https://${String(process.env.AWS_S3_BUCKET)}.s3.amazonaws.com/${selectedImage.key}`
   await saveUsedImages(selectedImage.key, url, agentId, packageId);
 
   // Return the selected image info
