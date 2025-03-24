@@ -11,7 +11,7 @@ dotenv.config();
 // Initialize S3 client
 
 
-const enum RARE {
+export const enum RARE {
   common = "common",
   rare = "rare",
   epic = "epic",
@@ -273,7 +273,7 @@ export async function selectImageFromPool(s3Config, agentId, packageId, customRa
   // Return the selected image info
   return {
     imageKey: selectedImage.key,
-    pool: selectedPool,
+    rare: selectedPool,
     url
   };
 }

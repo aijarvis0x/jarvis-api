@@ -333,7 +333,7 @@ export const getListBotInBag = async (userId: bigint, page: number, limit: numbe
   ];
 
   const baseQuery = `
-    SELECT 
+    SELECT
       b.avatar,
       b.id,
       b.name,
@@ -391,7 +391,7 @@ export const getListBotListed = async (userId: bigint, page: number, limit: numb
   ];
 
   const baseQuery = `
-    SELECT 
+    SELECT
       b.avatar,
       b.id,
       b.name,
@@ -735,41 +735,10 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
     }
 
     //@todo random nft
-    const { url: avatarUrl, pool: type } = await selectImageFromPool(s3Config, params.agentType, params.packageId)
+    const { url: avatarUrl, rare } = await selectImageFromPool(s3Config, params.agentType, params.packageId)
     console.log(`avatarUrl`, avatarUrl)
-    // const avatarUrl = `https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/avatars/${params.nftId}.jpeg`;
-    // const avatarUrl = `https://javis-agent.s3.ap-southeast-1.amazonaws.com/uploads/avatars/example.jpeg`;
 
-    const covertType = (typeInput) => {
-      let _type = ''
 
-      switch (typeInput) {
-        case "diamondCryptoman":
-        case "goldenCryptoman":
-          _type = "Common"
-          break;
-        case "diamondNurse":
-        case "silverNurse":
-          _type = "Rare"
-          break;
-        case "diamondAnime":
-        case "goldenNurse":
-          _type = "Epic"
-          break;
-        case "goldenAnime":
-          _type = "Legendary"
-          break;
-        case "silverCryptoman":
-        case "silverAnime":
-          _type = "Mythic"
-          break;
-        default:
-          _type = "Mythic"
-          break;
-      }
-
-      return _type
-    }
     const animeDescription = "The degen crypto girl – smart, sexy, and always one step ahead. She trades with confidence, flips NFTs like a pro, and laughs in the face of liquidations. Sharp, fearless, and a little dangerous—she’s not just here to play, she’s here to win. Think you can handle her?"
     const descriptionMapping = {
       0: "The Ultimate Degen Trader – Risk It All, Win It All. 🚀🔥 A high-stakes degen who thrives on futures, stacks rare NFTs, and holds memes like gold. Sharp in the market, smooth in real life—serious when it counts, but always a romantic at heart.",
@@ -787,7 +756,7 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
     const name = getValue(names, params.agentType, "MonCryptoMan") + ` #${params.nftId}`
 
     const attributes = JSON.stringify([
-      { rare: covertType(type) }
+      { rare: String(rare) }
     ])
 
     // const backgrounds = [
