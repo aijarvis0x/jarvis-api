@@ -100,3 +100,11 @@ export const myAgentQuery = {
     })
   ),
 } as const
+
+export const commentBotSchema = z.object({
+  text: z.string()
+})
+
+export const getCommentsQuery = {
+  querystring: paginationSchema
+} as const

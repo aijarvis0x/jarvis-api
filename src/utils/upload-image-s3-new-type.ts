@@ -81,7 +81,7 @@ const processUpload = async () => {
         }
 
         for (const folder of folders) {
-            const selectedImages = selectRandomImages(filteredImages, 20);
+            const selectedImages = selectRandomImages(filteredImages, 100);
 
             for (const newFileName of selectedImages) {
                 const originalFileName = newFileName.split("_").slice(1).join("_"); // Lấy tên gốc

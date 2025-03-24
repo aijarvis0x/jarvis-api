@@ -70,6 +70,7 @@ model Bot {
 
   Orders              Order[]     @relation("BotOrders")  // Added Relation
   favoritedByUsers    FavoriteBot[] @relation("BotFavoriteBot")
+  CommentBots         CommentBot[] @relation("BotCommentBot")
 
   @@index([nftId])
   @@index([agentId])
@@ -99,6 +100,7 @@ model User {
   OrdersAsBuyer       Order[]     @relation("BuyerRelation")
   OrdersAsSeller      Order[]     @relation("SellerRelation")
   favoriteBots        FavoriteBot[] @relation("UserFavoriteBot")
+  CommentBots         CommentBot[] @relation("UserCommentBot")
 
   @@index([address])
   @@index([name])
@@ -230,4 +232,20 @@ model MintImageHistory {
   createdAt       DateTime @default(now()) @map("created_at")
 
   @@map("mint_image_history")
+}
+
+model CommentBot {
+  id              BigInt   @id @default(autoincrement())
+  userId          BigInt   @map("user_id")
+  botId           BigInt   @map("bot_id")
+  text            String 
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @map("updated_at")
+
+  User       User     @relation("UserCommentBot", fields: [userId], references: [id], onDelete: Cascade)
+
+  Bot        Bot      @relation("BotCommentBot", fields: [botId], references: [id], onDelete: Cascade)
+
+
+  @@map("comment_bot")
 }
