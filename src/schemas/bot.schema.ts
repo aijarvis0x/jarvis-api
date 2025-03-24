@@ -96,7 +96,7 @@ export const publishBotSchema = z.object({
 export const myAgentQuery = {
   querystring: paginationSchema.merge(
     z.object({
-      filterType: z.enum([MarketFilter.All, MarketFilter.Listed, MarketFilter.InBag]).default(MarketFilter.),
+      filterType: z.enum([MarketFilter.All, MarketFilter.Listed, MarketFilter.InBag]).default(MarketFilter.All),
     })
   ),
 } as const

@@ -848,7 +848,7 @@ export const insertComment = async (userId, text, botId) => {
   try {
     const insertQuery = `
       INSERT INTO comment_bot
-        (userId, botId, text)
+        (user_id, bot_id, text)
       VALUES
         ($1, $2, $3)
       RETURNING id;
@@ -861,7 +861,7 @@ export const insertComment = async (userId, text, botId) => {
     ]
 
     const result = await db.pool.query(insertQuery, values)
-    return result
+    return result.rows[0]
   } catch (error) {
     console.log(error);
     throw error
@@ -901,7 +901,7 @@ export const getAllCommentBot = async (botId, page, limit) => {
     ]
 
     const result = await db.pool.query(query, values)
-    return result
+    return result.rows
   } catch (error) {
     console.log(error);
     throw error

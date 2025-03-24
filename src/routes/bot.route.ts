@@ -317,18 +317,18 @@ export default async (app: AppInstance) => {
     },
   })
 
-  app.post("/comments/:id", {
+  app.post("/create-comments/:botId", {
     schema: {
       tags: ["Bot"],
       body: commentBotSchema
     },
     onRequest: app.authenticate,
     handler: async (request, reply) => {
-      const { id } = request.params as any;
+      const { botId } = request.params as any;
       let { userId } = request;
       const {text} = request.body;
 
-      let comment = await insertComment(userId, text, id)
+      let comment = await insertComment(userId, text, botId)
       return reply.status(200).send({
         message: "OK",
         data: {
@@ -338,18 +338,18 @@ export default async (app: AppInstance) => {
     },
   })
 
-  app.get("/comments/:id", {
+  app.get("/get-comments/:botId", {
     schema: {
       tags: ["Bot"],
       querystring: getCommentsQuery.querystring
     },
     onRequest: optionalAuthenticate,
     handler: async (request, reply) => {
-      const { id } = request.params as any;
+      const { botId } = request.params as any;
       const { page = 1, perPage } = request.query as any
       const limit = perPage
 
-      let comments = await getAllCommentBot(id, page, limit)
+      let comments = await getAllCommentBot(botId, page, limit)
       return reply.status(200).send({
         message: "OK",
         data: {
