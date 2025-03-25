@@ -15,7 +15,7 @@ export enum TimeFilterTrend {
 }
 
 export enum TrendType {
-	Trending = "trending",
+	Trending = "Trending",
 	Top = "Top",
 	PriceDesc = "PriceDesc"
 }

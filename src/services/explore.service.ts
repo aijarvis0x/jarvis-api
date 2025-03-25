@@ -96,27 +96,24 @@ export const getTrendingBot = async (userId: bigint, limit: number, offset: numb
 					o.created_at as order_created_at
 				FROM bots b 
 				JOIN orders o ON b.id = o.bot_id 
-				WHERE o.state = ${OrderState.Listed}
+				WHERE o.state = '${OrderState.Listed}'
 			) a
 			WHERE a.rank = 1 AND ${conditionState}
 		`
-		const statement: QueryConfig = {
-			name: "getConversationalBot",
-			text: `
-						SELECT *
-						FROM (${baseQuery}) a
-						${orderState}
-						LIMIT $1, OFFSET $2`,
-			values: [limit, offset],
-		};
 
+		const statement = `
+		SELECT *
+		FROM (${baseQuery}) a
+		${orderState}
+		LIMIT $1 OFFSET $2
+		`
 		const countQuery = `
 			SELECT COUNT(*)
 			FROM (${baseQuery}) a
 		`
 		
 		const [botsResult, countResult] = await Promise.all([
-			db.pool.query(statement),
+			db.pool.query(statement, [limit, offset]),
 			db.pool.query(countQuery),
 		]);
 
