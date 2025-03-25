@@ -241,7 +241,7 @@ export const findBotByIdWithoutOwner = async (botId: BotId) => {
 export const findBotByNftId = async (botObjId: string, confirmedAt: bigint) => {
   const statement: QueryConfig = {
     name: "findBotByNftId",
-    text: "SELECT * FROM bots WHERE nft_id = $1 AND lastest_act < $2 LIMIT 1",
+    text: "SELECT * FROM bots WHERE nft_id = $1 AND lastest_act <= $2 LIMIT 1",
     values: [botObjId, confirmedAt],
   }
 
@@ -527,6 +527,28 @@ export const updateBotOwner = async (props: {
   `;
 
   const values = [props.userId, props.newOwner, props.blockNumber, props.botId];
+
+  try {
+    await pool.query(query, values);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateBotOwnerNotLastact = async (props: {
+  botId: string,
+  userId: string,
+  newOwner: string,
+  blockNumber: bigint
+}, pool: PoolClient | Pool = db.pool): Promise<void> => {
+  const query = `
+    UPDATE bots
+    SET user_id = $1, owner = $2,
+        updated_at = NOW()
+    WHERE id = $3 AND lastest_act <= $4 RETURNING *;
+  `;
+
+  const values = [props.userId, props.newOwner, props.botId, props.blockNumber];
 
   try {
     await pool.query(query, values);
