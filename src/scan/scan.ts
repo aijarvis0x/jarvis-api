@@ -239,7 +239,7 @@ const _transferNftEvent = async (event: EventLog) => {
     return console.log(`[_transferNftEvent] Tx ${event.transactionHash} existed`)
   }
 
-  if(String(event?.returnValues?.to).toLowerCase() != String(process.env.NFT_CONTRACT_ADDRESS).toLowerCase() && String(event?.returnValues?.from).toLowerCase() != String(process.env.NFT_CONTRACT_ADDRESS).toLowerCase()) {
+  if(String(event?.returnValues?.to).toLowerCase() != String(process.env.MARKET_CONTRACT_ADDRESS).toLowerCase() && String(event?.returnValues?.from).toLowerCase() != String(process.env.MARKET_CONTRACT_ADDRESS).toLowerCase()) {
     await updateNftOwner(event)
   }
 }

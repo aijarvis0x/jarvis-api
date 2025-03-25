@@ -263,7 +263,7 @@ export const findBotByOnlyNftId = async (botObjId: string) => {
 export const findBotDelistableByNftId = async (botObjId: string, confirmedAt: bigint) => {
   const statement: QueryConfig = {
     name: "findBotDelistableByNftId",
-    text: "SELECT * FROM bots WHERE nft_id = $1 AND lastest_act < $2 LIMIT 1",
+    text: "SELECT * FROM bots WHERE nft_id = $1 AND lastest_act <= $2 LIMIT 1",
     values: [botObjId, confirmedAt],
   }
 
