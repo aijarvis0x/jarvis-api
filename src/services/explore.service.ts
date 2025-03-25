@@ -80,7 +80,7 @@ export const getTrendingBot = async (userId: bigint, limit: number, offset: numb
 				orderState = `ORDER BY order_created_at DESC`
 				break;
 			case TrendType.PriceDesc:
-				orderState = `ORDER BY price DESC`
+				orderState = `ORDER BY price::NUMERIC DESC`
 			default:
 				orderState = `ORDER BY order_created_at DESC`
 				break;
