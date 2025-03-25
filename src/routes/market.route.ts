@@ -296,8 +296,8 @@ export default async (app: AppInstance) => {
               b.category_ids,
               'https://app.aijarvis.xyz/ai-agents/' || b.id AS external_url,
               o.price,
-              t.sender,
-              t.recipient,
+              o.seller_address AS sender,
+              o.buyer_address AS recipient,
               t.confirmed_at,
               t.event_name,
               t.event_listing_id
