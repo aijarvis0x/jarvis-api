@@ -2,7 +2,7 @@ import type { QueryConfig } from "pg"
 import { db } from "../lib/pg.js"
 import { BotState, Currency, OrderState } from "../constants.js"
 import dayjs from "dayjs"
-import { createTransaction, findBotByNftId, findBotDelistableByNftId, updateBotLastestActOnchain, updateBotOwner, updateNftOwner } from "./bot.service.js"
+import { createTransaction, findBotByNftId, findBotByOnlyNftId, findBotDelistableByNftId, updateBotLastestActOnchain, updateBotOwner, updateNftOwner } from "./bot.service.js"
 import { buyOrder, cancelOrder, createOrder, CreateOrderParams, findOrderByOrderId, findOrderByTx, updateOrderState, updatePriceOrder } from "./order.service.js"
 import { MINT_AI_FEE } from "../env.js"
 import { findUserByAddress } from "./users.service.js"
@@ -106,7 +106,7 @@ export const reUpdateOwner = async (
                 const [pgClient] = clients;
                 console.log(event)
                 // Check if bot exists
-                const bot = await findBotByNftId(String(event?.returnValues?.tokenId), BigInt(event?.blockNumber ?? 0));
+                const bot = await findBotByOnlyNftId(String(event?.returnValues?.tokenId));
                 if (!bot) {
                     throw new Error(`Bot doesn't exist or has been updated`);
                 }
