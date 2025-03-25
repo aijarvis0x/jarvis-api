@@ -81,6 +81,10 @@ export const getTrendingBot = async (userId: bigint, limit: number, offset: numb
 				break;
 			case TrendType.PriceDesc:
 				orderState = `ORDER BY price::NUMERIC DESC`
+				break;
+			case TrendType.PriceAsc:
+				orderState = `ORDER BY price::NUMERIC ASC`
+				break;
 			default:
 				orderState = `ORDER BY order_created_at DESC`
 				break;
@@ -111,6 +115,7 @@ export const getTrendingBot = async (userId: bigint, limit: number, offset: numb
 			SELECT COUNT(*)
 			FROM (${baseQuery}) a
 		`
+		console.log(statement);
 		
 		const [botsResult, countResult] = await Promise.all([
 			db.pool.query(statement, [limit, offset]),

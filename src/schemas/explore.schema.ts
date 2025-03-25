@@ -17,7 +17,8 @@ export enum TimeFilterTrend {
 export enum TrendType {
 	Trending = "Trending",
 	Top = "Top",
-	PriceDesc = "PriceDesc"
+	PriceDesc = "PriceDesc",
+	PriceAsc = "PriceAsc"
 }
 
 export const listTrendingBotQuery = {
