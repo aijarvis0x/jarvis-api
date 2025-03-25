@@ -239,7 +239,9 @@ const _transferNftEvent = async (event: EventLog) => {
     return console.log(`[_transferNftEvent] Tx ${event.transactionHash} existed`)
   }
 
-  await updateNftOwner(event)
+  if(event?.returnValues?.to != process.env.NFT_CONTRACT_ADDRESS && event?.returnValues?.from != process.env.NFT_CONTRACT_ADDRESS) {
+    await updateNftOwner(event)
+  }
 }
 
 let blockStart: number = Number(process.env.RE_START_BLOCK) ?? 7096250;

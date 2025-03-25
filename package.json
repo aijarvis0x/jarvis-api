@@ -10,6 +10,7 @@
     "dev:admin": "tsx --require dotenv/config src/admin.ts",
     "dev:worker": "tsx --require dotenv/config src/core-ai/start-ai-generate.job.ts",
     "dev:scan-mint": "tsx --require dotenv/config src/scan/scan.ts",
+    "dev:scan-listing": "tsx --require dotenv/config src/scan/rescan-listing.ts",
     "dev:revert": "tsx --require dotenv/config src/scripts/revert-pending-buy-request.ts",
     "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
