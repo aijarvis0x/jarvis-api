@@ -1,5 +1,5 @@
 import { optionalAuthenticate } from "../plugins/optional-auth.js";
-import { addFavoriteBotBody, listTrendingBotQuery } from "../schemas/explore.schema.js";
+import { addFavoriteBotBody, listTrendingBotQuery, TimeFilterTrend, TrendType } from "../schemas/explore.schema.js";
 import { paginationSchema } from "../schemas/generic-schemas.js";
 import { loginSchema } from "../schemas/user.schema.js";
 import {
@@ -54,14 +54,14 @@ export default async (app: AppInstance) => {
     onRequest: optionalAuthenticate,
     handler: async (request, reply) => {
       const { userId } = request;
-      const { timeTrend = 'all' } = request.query;
+      const { timeFilterTrend = TimeFilterTrend.All, trendType = TrendType.Trending } = request.query;
 
       try {
         const { page = 1, perPage } = request.query;
         const limit = perPage;
         const offset = (page - 1) * limit;
 
-        const result = await getTrendingBot(userId, limit, offset, page, timeTrend);
+        const result = await getTrendingBot(userId, limit, offset, page, timeFilterTrend, trendType);
 
         return reply.status(200).send({
           message: "OK",
