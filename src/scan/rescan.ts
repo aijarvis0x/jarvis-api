@@ -242,8 +242,8 @@ const _transferNftEvent = async (event: EventLog) => {
   await updateNftOwner(event)
 }
 
-let blockStart: number = Number(process.env.START_BLOCK) ?? 7096250;
-let delayBlockNumber: number = 2;
+let blockStart: number = Number(process.env.RE_START_BLOCK) ?? 7096250;
+let delayBlockNumber: number = 60;
 
 let paused: boolean = false;
 
