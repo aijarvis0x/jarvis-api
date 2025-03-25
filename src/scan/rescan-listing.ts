@@ -107,7 +107,7 @@ const isTxNotExist = async (txHash, logIndex) => {
 
 
 let blockStart: number = Number(process.env.RESCAN_LISTING_START) ?? 7096250;
-let delayBlockNumber: number = 2;
+let delayBlockNumber: number = 100;
 
 let paused: boolean = false;
 
