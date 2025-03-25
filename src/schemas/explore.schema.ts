@@ -10,7 +10,7 @@ export enum TimeFilterTrend {
 	All = "all",
 	OneHour = "1h",
 	SixHours = "6h",
-	TwentyHours = "20h",
+	OneDay = "1d",
 	SevenDays = "7d"
 }
 
