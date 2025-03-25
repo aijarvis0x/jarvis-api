@@ -115,12 +115,7 @@ export const reUpdateOwner = async (
                 if (!seller) {
                     throw new Error(`Seller doesn't exist`);
                 }
-                //check order existed
-                let order = await findOrderByTx(String(event?.transactionHash))
-
-                if (order) {
-                    throw new Error(`Order is existed`);
-                }
+             
 
                 await updateBotOwner({
                     botId: bot.id,

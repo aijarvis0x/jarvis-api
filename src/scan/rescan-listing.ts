@@ -113,7 +113,7 @@ let paused: boolean = false;
 
 
 const transactionSuccessJob = new CronJob(
-  '*/3 * * * * *',
+  '*/2 * * * * *',
   async function () {
     try {
       if (paused) {
