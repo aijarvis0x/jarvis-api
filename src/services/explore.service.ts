@@ -115,7 +115,7 @@ export const getTrendingBot = async (userId: bigint, limit: number, offset: numb
 			SELECT COUNT(*)
 			FROM (${baseQuery}) a
 		`
-		console.log(statement);
+		// console.log(statement);
 		
 		const [botsResult, countResult] = await Promise.all([
 			db.pool.query(statement, [limit, offset]),
