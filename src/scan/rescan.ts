@@ -238,8 +238,8 @@ const _transferNftEvent = async (event: EventLog) => {
   if (!(await isTxNotExist(event.transactionHash, event.logIndex))) {
     return console.log(`[_transferNftEvent] Tx ${event.transactionHash} existed`)
   }
-  
-  if(event?.returnValues?.to != process.env.NFT_CONTRACT_ADDRESS) {
+
+  if(event?.returnValues?.to != process.env.NFT_CONTRACT_ADDRESS && event?.returnValues?.from != process.env.NFT_CONTRACT_ADDRESS) {
     await updateNftOwner(event)
   }
 }

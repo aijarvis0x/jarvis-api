@@ -2,7 +2,7 @@ import type { QueryConfig } from "pg"
 import { db } from "../lib/pg.js"
 import { BotState, Currency, OrderState } from "../constants.js"
 import dayjs from "dayjs"
-import { createTransaction, findBotByNftId, findBotDelistableByNftId, updateBotLastestActOnchain, updateBotOwner } from "./bot.service.js"
+import { createTransaction, findBotByNftId, findBotDelistableByNftId, updateBotLastestActOnchain, updateBotOwner, updateNftOwner } from "./bot.service.js"
 import { buyOrder, cancelOrder, createOrder, CreateOrderParams, findOrderByOrderId, findOrderByTx, updateOrderState, updatePriceOrder } from "./order.service.js"
 import { MINT_AI_FEE } from "../env.js"
 import { findUserByAddress } from "./users.service.js"
@@ -93,6 +93,50 @@ export const confirmItemListedMarket = async (
             }
         })
 }
+
+
+export const reUpdateOwner = async (
+    event: EventLog,
+) => {
+    //create bot
+    await multiConnectionTransaction(
+        [db.pool],
+        async (bail, clients, mongoSession) => {
+            try {
+                const [pgClient] = clients;
+                console.log(event)
+                // Check if bot exists
+                const bot = await findBotByNftId(String(event?.returnValues?.tokenId), BigInt(event?.blockNumber ?? 0));
+                if (!bot) {
+                    throw new Error(`Bot doesn't exist or has been updated`);
+                }
+
+                const seller = await findUserByAddress(String(event?.returnValues?.seller), pgClient)
+                if (!seller) {
+                    throw new Error(`Seller doesn't exist`);
+                }
+                //check order existed
+                let order = await findOrderByTx(String(event?.transactionHash))
+
+                if (order) {
+                    throw new Error(`Order is existed`);
+                }
+
+                await updateBotOwner({
+                    botId: bot.id,
+                    userId: seller.id,
+                    newOwner: String(event?.returnValues?.seller),
+                    blockNumber: BigInt(event.blockNumber as bigint)
+                }, pgClient)
+
+
+            } catch (error) {
+                bail(new Error("Error during bot processing transaction:" + error));
+                throw error;
+            }
+        })
+}
+
 
 export const confirmItemCancelledMarket = async (
     event: EventLog,

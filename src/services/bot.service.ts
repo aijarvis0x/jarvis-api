@@ -522,11 +522,11 @@ export const updateBotOwner = async (props: {
   const query = `
     UPDATE bots
     SET user_id = $1, owner = $2,
-        updated_at = NOW()
-    WHERE id = $3 AND lastest_act <= $4 RETURNING *;
+        updated_at = NOW(), lastest_act = $3
+    WHERE id = $4 AND lastest_act <= $3 RETURNING *;
   `;
 
-  const values = [props.userId, props.newOwner, props.botId, props.blockNumber];
+  const values = [props.userId, props.newOwner, props.blockNumber, props.botId];
 
   try {
     await pool.query(query, values);
