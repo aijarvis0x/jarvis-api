@@ -74,15 +74,15 @@ export const getTrendingBot = async (userId: bigint, limit: number, offset: numb
 
 		switch (trendType) {
 			case TrendType.Trending:
-				orderState = `order_created_at DESC`
+				orderState = `ORDER BY order_created_at DESC`
 				break;
 			case TrendType.Top:
-				orderState = `order_created_at DESC`
+				orderState = `ORDER BY order_created_at DESC`
 				break;
 			case TrendType.PriceDesc:
 				orderState = `ORDER BY price DESC`
 			default:
-				orderState = `order_created_at DESC`
+				orderState = `ORDER BY order_created_at DESC`
 				break;
 		}
 		const baseQuery = `
