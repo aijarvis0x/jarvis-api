@@ -14,7 +14,7 @@ export const getPhotoFilterBot = async (userId: bigint, limit: number, offset: n
 						FROM bots b 
 						JOIN orders o ON b.id = o.bot_id 
 						WHERE o.state = $1 
-						ORDER BY RANDOM() 
+						ORDER BY o.created_at DESC
 						LIMIT $2 OFFSET $3`,
 			values: [OrderState.Listed, limit, offset],
 		};
@@ -61,8 +61,8 @@ export const getTrendingBot = async (userId: bigint, limit: number, offset: numb
 			case TimeFilterTrend.SixHours:
 				conditionState = `order_created_at >= NOW() - INTERVAL '6 hours'`
 				break;
-			case TimeFilterTrend.TwentyHours:
-				conditionState = `order_created_at >= NOW() - INTERVAL '20 hours'`
+			case TimeFilterTrend.OneDay:
+				conditionState = `order_created_at >= NOW() - INTERVAL '1 day'`
 				break;
 			case TimeFilterTrend.SevenDays:
 				conditionState = `order_created_at >= NOW() - INTERVAL '7 days'`
@@ -74,15 +74,15 @@ export const getTrendingBot = async (userId: bigint, limit: number, offset: numb
 
 		switch (trendType) {
 			case TrendType.Trending:
-				orderState = `ORDER BY RANDOM()`
+				orderState = `order_created_at DESC`
 				break;
 			case TrendType.Top:
-				orderState = `ORDER BY RANDOM()`
+				orderState = `order_created_at DESC`
 				break;
 			case TrendType.PriceDesc:
 				orderState = `ORDER BY price DESC`
 			default:
-				orderState = `ORDER BY RANDOM()`
+				orderState = `order_created_at DESC`
 				break;
 		}
 		const baseQuery = `
@@ -141,7 +141,7 @@ export const getFunAndMemeBot = async (userId: bigint, limit: number, offset: nu
 						FROM bots b 
 						JOIN orders o ON b.id = o.bot_id 
 						WHERE o.state = $1 
-						ORDER BY RANDOM() 
+						ORDER BY o.created_at DESC 
 						LIMIT $2 OFFSET $3`,
 			values: [OrderState.Listed, limit, offset],
 		};
@@ -182,7 +182,7 @@ export const getTopPickBot = async (userId: bigint, limit: number, offset: numbe
 						FROM bots b 
 						JOIN orders o ON b.id = o.bot_id 
 						WHERE o.state = $1 
-						ORDER BY RANDOM() 
+						ORDER BY o.created_at DESC 
 						LIMIT $2 OFFSET $3`,
 			values: [OrderState.Listed, limit, offset],
 		};
@@ -223,7 +223,7 @@ export const getAutomationAndProductivityBot = async (userId: bigint, limit: num
 						FROM bots b 
 						JOIN orders o ON b.id = o.bot_id 
 						WHERE o.state = $1 
-						ORDER BY RANDOM() 
+						ORDER BY o.created_at DESC 
 						LIMIT $2 OFFSET $3`,
 			values: [OrderState.Listed, limit, offset],
 		};
