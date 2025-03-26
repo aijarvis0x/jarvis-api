@@ -252,6 +252,7 @@ model CommentBot {
 
 model EventHistory {
   id              BigInt   @id @default(autoincrement())
+  listingId       String?   @map("listing_id")
   userId          BigInt?   @map("user_id")
   botId           BigInt?   @map("bot_id")
   orderId         BigInt?   @map("order_id")

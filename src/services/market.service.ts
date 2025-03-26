@@ -90,13 +90,14 @@ export const confirmItemListedMarket = async (
                 await createEventHistory(
                     pgClient,
                     {
-                        event,
+                        event: undefined,
                         eventType: eventName,
                         userId: seller.id,
                         orderId: order.id,
                         botId: bot.id,
                         fromAddress: String(event.returnValues.seller),
-                        toAddress: process.env.MARKET_CONTRACT_ADDRESS as string
+                        toAddress: process.env.MARKET_CONTRACT_ADDRESS as string,
+                        listingId: BigInt(event?.returnValues?.listingId as bigint)
                     }
                 )
 
@@ -203,13 +204,14 @@ export const confirmItemCancelledMarket = async (
                 await createEventHistory(
                     pgClient,
                     {
-                        event,
+                        event: undefined,
                         eventType: eventName,
                         userId: seller.id,
                         orderId: order.id,
                         botId: bot.id,
                         fromAddress: process.env.MARKET_CONTRACT_ADDRESS as string,
-                        toAddress: order?.seller_address as string
+                        toAddress: order?.seller_address as string,
+                        listingId: String(event?.returnValues?.listingId as bigint)
                     }
                 )
             } catch (error) {
@@ -283,13 +285,14 @@ export const confirmItemSoldMarket = async (
                 await createEventHistory(
                     pgClient,
                     {
-                        event,
+                        event: undefined,
                         eventType: eventName,
                         userId: buyer.id,
                         orderId: order.id,
                         botId: bot.id,
                         fromAddress: order?.seller_address as string,
-                        toAddress: String(event.returnValues.buyer)
+                        toAddress: String(event.returnValues.buyer),
+                        listingId: String(event?.returnValues?.listingId as bigint)
                     }
                 )
             } catch (error) {
@@ -354,13 +357,14 @@ export const confirmItemUpdatePriceMarket = async (
                 await createEventHistory(
                     pgClient,
                     {
-                        event,
+                        event: undefined,
                         eventType: eventName,
                         userId: undefined,
                         orderId: order.id,
                         botId: bot.id,
                         fromAddress: order?.seller_address as string,
-                        toAddress: process.env.MARKET_CONTRACT_ADDRESS as string
+                        toAddress: process.env.MARKET_CONTRACT_ADDRESS as string,
+                        listingId: String(event?.returnValues?.listingId as bigint)
                     }
                 )
             } catch (error) {
