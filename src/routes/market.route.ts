@@ -282,44 +282,41 @@ export default async (app: AppInstance) => {
 
         const baseQuery = `
           SELECT
-            *
+            b.id AS bot_id,
+            b.nft_id,
+            b.description,
+            b.avatar,
+            b.background,
+            b.name,
+            b.attributes,
+            b.category_ids,
+            'https://app.aijarvis.xyz/ai-agents/' || b.id AS external_url,
+            o.price,
+            e.from_address AS sender,
+            e.to_address AS recipient,
+            e.created_at,
+            e.event_type AS event_name,
+            e.event_listing_id
           FROM (
             SELECT
-              ROW_NUMBER() OVER(PARTITION BY b.id ORDER BY t.confirmed_at DESC) AS rank,
-              b.id AS bot_id,
-              b.nft_id,
-              b.description,
-              b.avatar,
-              b.background,
-              b.name,
-              b.attributes,
-              b.category_ids,
-              'https://app.aijarvis.xyz/ai-agents/' || b.id AS external_url,
-              o.price,
-              o.seller_address AS sender,
-              o.buyer_address AS recipient,
-              t.confirmed_at,
-              t.event_name,
-              t.event_listing_id
+              *
             FROM (
               SELECT
-                events->>'listingId' AS event_listing_id,
-                logs->>'eventName' AS event_name,
-                confirmed_at,
-                sender,
-                recipient
-              FROM transactions t 
-            ) t 
-            INNER JOIN orders o ON t.event_listing_id = o.order_id
-            INNER JOIN bots b ON o.nft_id = b.nft_id
-          ) a
-          WHERE a.rank = 1
+                *,
+                ROW_NUMBER() OVER(PARTITION BY bot_id ORDER BY e.created_at DESC) AS rank,
+                event -> 'returnValues' ->> 'listingId' AS event_listing_id
+              FROM event_history e
+            ) e
+            WHERE e.rank = 1
+          ) e
+          INNER JOIN orders o ON e.order_id = o.id
+          INNER JOIN bots b ON e.bot_id = b.id
         `
 
         const activitiesQuery = `
           SELECT *
           FROM (${baseQuery}) a
-          ORDER BY a.confirmed_at DESC
+          ORDER BY a.created_at DESC
           LIMIT $1 OFFSET $2
         `;
 

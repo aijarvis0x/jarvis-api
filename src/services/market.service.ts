@@ -1,8 +1,8 @@
-import type { QueryConfig } from "pg"
+import { Pool, type QueryConfig } from "pg"
 import { db } from "../lib/pg.js"
 import { BotState, Currency, OrderState } from "../constants.js"
 import dayjs from "dayjs"
-import { createTransaction, findBotByNftId, findBotByOnlyNftId, findBotDelistableByNftId, updateBotLastestActOnchain, updateBotOwner, updateBotOwnerNotLastact, updateNftOwner } from "./bot.service.js"
+import { createEventHistory, createTransaction, findBotByNftId, findBotByOnlyNftId, findBotDelistableByNftId, updateBotLastestActOnchain, updateBotOwner, updateBotOwnerNotLastact, updateNftOwner } from "./bot.service.js"
 import { buyOrder, cancelOrder, createOrder, CreateOrderParams, findOrderByOrderId, findOrderByTx, updateOrderState, updatePriceOrder } from "./order.service.js"
 import { MINT_AI_FEE } from "../env.js"
 import { findUserByAddress } from "./users.service.js"
@@ -37,7 +37,8 @@ export const confirmItemListedMarket = async (
                 if (order) {
                     throw new Error(`Order is existed`);
                 }
-
+                
+                let eventName = "Listed"
                 //check transaction existed?
                 let log = await createTransaction(pgClient, {
                     txHash: event?.transactionHash,
@@ -57,7 +58,7 @@ export const confirmItemListedMarket = async (
                         price: String(event?.returnValues?.price),
                         paymentToken: event.returnValues.paymentToken,
                     },
-                    logs: { eventName: "Listed" },
+                    logs: { eventName: eventName },
                     confirmedAt: dayjs.utc().toDate(),
                 })
 
@@ -86,6 +87,18 @@ export const confirmItemListedMarket = async (
                 order = await createOrder(pgClient, orderParams);
 
                 await updateBotLastestActOnchain(bot.id, BigInt(event.blockNumber ?? 0), pgClient)
+                await createEventHistory(
+                    pgClient,
+                    {
+                        event,
+                        eventType: eventName,
+                        userId: seller.id,
+                        orderId: order.id,
+                        botId: bot.id,
+                        fromAddress: String(event.returnValues.seller),
+                        toAddress: process.env.MARKET_CONTRACT_ADDRESS as string
+                    }
+                )
 
             } catch (error) {
                 bail(new Error("Error during bot processing transaction:" + error));
@@ -158,7 +171,8 @@ export const confirmItemCancelledMarket = async (
                 if (!seller) {
                     throw new Error(`Seller doesn't exist`);
                 }
-
+                
+                let eventName = "Cancelled"
                 //check transaction existed?
                 let log = await createTransaction(pgClient, {
                     txHash: event?.transactionHash,
@@ -173,7 +187,7 @@ export const confirmItemCancelledMarket = async (
                     events: {
                         listingId: String(event?.returnValues?.listingId as bigint)
                     },
-                    logs: { eventName: "Cancelled" },
+                    logs: { eventName: eventName },
                     confirmedAt: dayjs.utc().toDate(),
                 })
 
@@ -185,6 +199,19 @@ export const confirmItemCancelledMarket = async (
                 await cancelOrder(pgClient, BigInt(event?.returnValues?.listingId as bigint), String(event.transactionHash), BigInt(event.blockNumber ?? 0), String(event?.returnValues?.seller), seller.id);
 
                 await updateBotLastestActOnchain(bot.id, BigInt(event.blockNumber ?? 0), pgClient)
+
+                await createEventHistory(
+                    pgClient,
+                    {
+                        event,
+                        eventType: eventName,
+                        userId: seller.id,
+                        orderId: order.id,
+                        botId: bot.id,
+                        fromAddress: process.env.MARKET_CONTRACT_ADDRESS as string,
+                        toAddress: order?.seller_address as string
+                    }
+                )
             } catch (error) {
                 bail(new Error("Error during bot processing transaction:" + error));
                 throw error;
@@ -217,7 +244,8 @@ export const confirmItemSoldMarket = async (
                 if (!buyer) {
                     throw new Error(`Buyer not exist`);
                 }
-
+                
+                let eventName = "Sold"
                 //check transaction existed?
                 let log = await createTransaction(pgClient, {
                     txHash: event?.transactionHash,
@@ -233,7 +261,7 @@ export const confirmItemSoldMarket = async (
                         buyer: event.returnValues.buyer,
                         listingId: String(event?.returnValues?.listingId as bigint),
                     },
-                    logs: { eventName: "Sold" },
+                    logs: { eventName: eventName },
                     confirmedAt: dayjs.utc().toDate(),
                 })
 
@@ -252,7 +280,18 @@ export const confirmItemSoldMarket = async (
                 await buyOrder(pgClient, BigInt(event?.returnValues?.listingId as bigint), String(event.transactionHash), BigInt(event.blockNumber ?? 0), String(event?.returnValues?.buyer), buyer.id);
 
                 await updateBotLastestActOnchain(bot.id, BigInt(event.blockNumber ?? 0), pgClient)
-
+                await createEventHistory(
+                    pgClient,
+                    {
+                        event,
+                        eventType: eventName,
+                        userId: buyer.id,
+                        orderId: order.id,
+                        botId: bot.id,
+                        fromAddress: order?.seller_address as string,
+                        toAddress: String(event.returnValues.buyer)
+                    }
+                )
             } catch (error) {
                 bail(new Error("Error during bot processing transaction:" + error));
                 throw error;
@@ -281,7 +320,7 @@ export const confirmItemUpdatePriceMarket = async (
                     throw new Error(`Bot doesn't exist or has been updated`);
                 }
 
-
+                let eventName = "UpdatePrice"
                 //check transaction existed?
                 let log = await createTransaction(pgClient, {
                     txHash: event?.transactionHash,
@@ -298,7 +337,7 @@ export const confirmItemUpdatePriceMarket = async (
                         oldPrice: String(event?.returnValues?.oldPrice),
                         newPrice: String(event?.returnValues?.newPrice),
                     },
-                    logs: { eventName: "UpdatePrice" },
+                    logs: { eventName: eventName },
                     confirmedAt: dayjs.utc().toDate(),
                 })
 
@@ -312,7 +351,18 @@ export const confirmItemUpdatePriceMarket = async (
 
 
                 await updateBotLastestActOnchain(bot.id, BigInt(event.blockNumber ?? 0), pgClient)
-
+                await createEventHistory(
+                    pgClient,
+                    {
+                        event,
+                        eventType: eventName,
+                        userId: undefined,
+                        orderId: order.id,
+                        botId: bot.id,
+                        fromAddress: order?.seller_address as string,
+                        toAddress: process.env.MARKET_CONTRACT_ADDRESS as string
+                    }
+                )
             } catch (error) {
                 bail(new Error("Error during bot processing transaction:" + error));
                 throw error;
