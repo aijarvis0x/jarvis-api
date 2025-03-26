@@ -973,13 +973,14 @@ export const updateNftOwner = async (eventLog: EventLog) => {
 }
 
 export const createEventHistory = async (pool: PoolClient, params: {
-  event: EventLog, 
+  event: EventLog | undefined, 
   eventType: string, 
   userId: string | undefined, 
   orderId: string, 
   botId: string,
   fromAddress: string,
-  toAddress: string
+  toAddress: string,
+  listingId: bigint | string
 }) => {
   try {
     const insertQuery = `
@@ -988,10 +989,10 @@ export const createEventHistory = async (pool: PoolClient, params: {
           user_id,
           bot_id,
           order_id,
-          event,
           event_type,
           from_address,
-          to_address
+          to_address,
+          listing_id
         )
       VALUES
         ($1, $2, $3, $4, $5, $6, $7)
@@ -1004,10 +1005,10 @@ export const createEventHistory = async (pool: PoolClient, params: {
       params.userId,
       params.botId,
       params.orderId,
-      params.event,
       params.eventType,
       params.fromAddress,
-      params.toAddress
+      params.toAddress,
+      params.listingId
     ]);
 
     return true

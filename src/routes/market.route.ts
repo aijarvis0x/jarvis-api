@@ -304,7 +304,7 @@ export default async (app: AppInstance) => {
               SELECT
                 *,
                 ROW_NUMBER() OVER(PARTITION BY bot_id ORDER BY e.created_at DESC) AS rank,
-                event -> 'returnValues' ->> 'listingId' AS event_listing_id
+                listing_id AS event_listing_id
               FROM event_history e
             ) e
             WHERE e.rank = 1
