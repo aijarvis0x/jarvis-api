@@ -989,14 +989,13 @@ export const createEventHistory = async (pool: PoolClient, params: {
           user_id,
           bot_id,
           order_id,
-          event,
           event_type,
           from_address,
           to_address,
           listing_id
         )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8)
+        ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *;
     `;
 
@@ -1006,7 +1005,6 @@ export const createEventHistory = async (pool: PoolClient, params: {
       params.userId,
       params.botId,
       params.orderId,
-      params.event,
       params.eventType,
       params.fromAddress,
       params.toAddress,
