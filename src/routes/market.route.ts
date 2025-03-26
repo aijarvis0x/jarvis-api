@@ -296,19 +296,8 @@ export default async (app: AppInstance) => {
             e.to_address AS recipient,
             e.created_at,
             e.event_type AS event_name,
-            e.event_listing_id
-          FROM (
-            SELECT
-              *
-            FROM (
-              SELECT
-                *,
-                ROW_NUMBER() OVER(PARTITION BY bot_id ORDER BY e.created_at DESC) AS rank,
-                listing_id AS event_listing_id
-              FROM event_history e
-            ) e
-            WHERE e.rank = 1
-          ) e
+            e.listing_id AS event_listing_id
+          FROM event_history e
           INNER JOIN orders o ON e.order_id = o.id
           INNER JOIN bots b ON e.bot_id = b.id
         `
