@@ -129,13 +129,13 @@ export default async (app: AppInstance) => {
     },
     onRequest: app.authenticate,
     handler: async (request, reply) => {
-      const { userId } = request
+      const { userId, address } = request
       const { conversationId,
         text,
         agentId, categoryId } = request.body
 
       try {
-        const textResponse = await sendMessage(userId, conversationId, text, agentId, categoryId)
+        const textResponse = await sendMessage(userId, conversationId, text, agentId, categoryId, address)
 
         return reply.status(200).send({
           message: "OK",
