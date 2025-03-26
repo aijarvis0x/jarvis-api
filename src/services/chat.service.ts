@@ -69,7 +69,8 @@ export const sendMessage = async (
   conversationId: string,
   text: string,
   agentId: string,
-  categoryId: string
+  categoryId: string,
+  userAddress: string
 ) => {
   try {
     // const response = await client.post(`${agentId}/message`, {
@@ -88,7 +89,7 @@ export const sendMessage = async (
     }
     const response = await client.post(`/${agentId}/message`, {
       text: text,
-      userId: String(userId),
+      userId: String(userAddress),
       roomId: conversationId,
     });
 
