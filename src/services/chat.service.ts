@@ -73,11 +73,35 @@ export const sendMessage = async (
   userAddress: string
 ) => {
   try {
-    // const response = await client.post(`${agentId}/message`, {
-    //   text: text,
-    //   userId: userId,
-    //   roomId: conversationId,
-    // });
+    const response = await client.post(`/${agentId}/message`, {
+      text: text,
+      userId: String(userAddress),
+      roomId: conversationId,
+    });
+
+    if (response.status == 200) {
+      return response.data;
+    }
+    return null;
+  } catch (error) {
+    console.error("Failed to send message:", error);
+    return await sendMessageToParentBot(
+      conversationId,
+      text,
+      categoryId,
+      userAddress
+    )
+  }
+};
+
+
+export const sendMessageToParentBot = async (
+  conversationId: string,
+  text: string,
+  categoryId: string,
+  userAddress: string
+) => {
+  try {
     const categoryMapping = {
       "0": "261a5a1d-75b0-0a2c-9fd9-da7e1ad06932",
       "1": "e1fc0723-cc1c-0b66-9b71-15a5303c33a3",
@@ -95,10 +119,11 @@ export const sendMessage = async (
 
     if (response.status == 200) {
       return response.data;
+    } else {
+      throw new Error(`No response from agent server`)
     }
-    return null;
   } catch (error) {
-    console.error("Failed to create agent:", error);
+    console.error("Failed to send message to parent bot:", error);
     throw error;
   }
 };
