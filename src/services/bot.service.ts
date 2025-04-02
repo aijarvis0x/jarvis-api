@@ -11,6 +11,7 @@ import { EventLog } from 'web3';
 import { selectImageFromPool } from "../utils/s3-pool.js"
 import { s3Config } from "../config/s3-config.js"
 import { findOrderOfBots } from "./order.service.js"
+import { SETTING_MODE_DEFAULT } from "../config/create-bot.js"
 
 
 export type BotInfo = {
@@ -204,6 +205,9 @@ const SETTING_MODE_DEFAUT = JSON.stringify({
     ]
   }
 })
+
+
+
 export const findBotById = async (botId: BotId, userId: bigint) => {
   const statement: QueryConfig = {
     name: "findBotById",
@@ -803,9 +807,9 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
 
     const insertQuery = `
           INSERT INTO bots
-            (category_ids, name, background, nft_id, user_id, owner, avatar, description, attributes, state, created_at, updated_at, lastest_act)
+            (category_ids, name, background, nft_id, user_id, owner, avatar, description, attributes, state, created_at, updated_at, lastest_act, setting_mode)
           VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW(), $11)
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW(), $11, $12)
           RETURNING id;
         `;
 
@@ -821,7 +825,8 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
       description,
       attributes,
       BotState.WaitingGenerate,
-      params.blockNumber
+      params.blockNumber,
+      SETTING_MODE_DEFAULT
     ];
 
     console.log(values)
