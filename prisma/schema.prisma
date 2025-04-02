@@ -30,7 +30,7 @@ model Bot {
   id                  BigInt      @id @default(autoincrement())
   nftId               String      @map("nft_id") @unique
   userId              BigInt      @map("user_id")
-  agentId             String      @map("agent_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentId             String?     @map("agent_id")
   owner               String
 
   avatar              String?

@@ -11,59 +11,12 @@ import { EventLog } from 'web3';
 import { selectImageFromPool } from "../utils/s3-pool.js"
 import { s3Config } from "../config/s3-config.js"
 import { findOrderOfBots } from "./order.service.js"
+import { BotInfo, SETTING_MODE_DEFAULT } from "../config/create-bot.js"
 
 
-export type BotInfo = {
-  id: string,
-  name?: string,
-  avatar?: string,
-  agent_id?: string,
-  background?: string,
-  setting_mode: BotSettingMode,
-  nsfw?: boolean,
-  tag?: string,
-  sub_tag?: string,
-  description?: string,
-  state?: BotState,
-  is_published?: boolean,
-  is_prompt_published?: boolean,
-  category_ids?: bigint[],
-  website?: string,
-  telegram?: string,
-  discord?: string,
-  x?: string
-}
 
-export type BotSettingMode = {
-  clients: String[],
-  modelProvider: ModelProvider,
-  settings: {
-    secrets: Record<string, any>;
-    voice: {
-      model: VoiceType;
-    };
-  }
-  plugins: PluginType[],
-  adjectives: AdjectivesType[],
-  bio: String[],
-  lore: String[],
-  knowledge: String[],
-  messageExamples: Array<
-    Array<{
-      user: string;
-      content: {
-        text: string;
-      };
-    }>
-  >;
-  postExamples: string[];
-  topics: string[];
-  style: {
-    all: string[];
-    chat: string[];
-    post: string[];
-  };
-}
+
+
 
 
 export enum ModelProvider {
@@ -78,20 +31,7 @@ export enum PluginType {
   elizaos_plugin_suimarket = '@elizaos/plugin-suimarket'
 }
 
-export enum AdjectivesType {
-  ANALYTICAL = "analytical",
-  PRECISE = "precise",
-  DATA_DRIVEN = "data-driven",
-  METHODICAL = "methodical",
-  CAUTIOUS = "cautious",
-  STRATEGIC = "strategic",
-  OBJECTIVE = "objective",
-  INSIGHTFUL = "insightful",
-  PROFESSIONAL = "professional",
-  VIGILANT = "vigilant",
-  RATIONAL = "rational",
-  THOROUGH = "thorough"
-}
+
 
 export type BotId = bigint | number | string
 
@@ -204,6 +144,9 @@ const SETTING_MODE_DEFAUT = JSON.stringify({
     ]
   }
 })
+
+
+
 export const findBotById = async (botId: BotId, userId: bigint) => {
   const statement: QueryConfig = {
     name: "findBotById",
@@ -803,9 +746,9 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
 
     const insertQuery = `
           INSERT INTO bots
-            (category_ids, name, background, nft_id, user_id, owner, avatar, description, attributes, state, created_at, updated_at, lastest_act)
+            (category_ids, name, background, nft_id, user_id, owner, avatar, description, attributes, state, created_at, updated_at, lastest_act, setting_mode)
           VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW(), $11)
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW(), $11, $12)
           RETURNING id;
         `;
 
@@ -821,7 +764,8 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
       description,
       attributes,
       BotState.WaitingGenerate,
-      params.blockNumber
+      params.blockNumber,
+      SETTING_MODE_DEFAULT
     ];
 
     console.log(values)
