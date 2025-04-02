@@ -61,10 +61,13 @@ export const processBotWithTransaction = async (
 
 const callApiGenBot = async (bot: BotInfo) => {
   try {
+    console.log(`Start call api create bot with info: \n\tname = ${bot.name}\n\tcategories = ${bot.category_ids}`);
+    
+
     let botCategory = Number(bot.category_ids?.[0])
-    if (!botCategory) {
-      botCategory = 0
-    }
+    // if (!botCategory) {
+    //   botCategory = 0
+    // }
 
     let parentId = agentTypeConfig[botCategory].parentAgentId
 
