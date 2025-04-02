@@ -14,8 +14,8 @@ export const client = new HttpClient({
 })
 
 export type CreateAgentRequestBody = BotSettingMode & {
-    id: string;
     name: string;
+    parentId: string;
 }
 
 export const createAgent = async (agentData: CreateAgentRequestBody): Promise<boolean> => {
@@ -24,9 +24,11 @@ export const createAgent = async (agentData: CreateAgentRequestBody): Promise<bo
 
         console.log("Agent created successfully:", response.data);
         if(response.status == 200) {
-            return true
+            let data = response.data;
+            return data
+        } else {
+            throw new Error(`Error at agent server ${response.data}, status: ${response.status}`)
         }
-        return false
     } catch (error) {
         console.error("Failed to create agent:", error);
         throw error;

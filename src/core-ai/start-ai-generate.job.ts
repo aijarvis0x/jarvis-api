@@ -5,13 +5,16 @@ import { db } from "../lib/pg.js"
 import { Pool } from "pg";
 import { createAgent, CreateAgentRequestBody } from "./api.lib.js";
 import { BotInfo } from "../services/bot.service.js";
+import { integer } from "aws-sdk/clients/cloudfront.js";
+import { Integer } from "aws-sdk/clients/apigateway.js";
+import { agentTypeConfig } from "../config/agent.js";
 
 
 
 export const processBotWithTransaction = async (
   pools: Pool[],
   botId: string,
-  updateCallback: (bot: any) => Promise<boolean>
+  updateCallback: (bot: any) => Promise<any>
 ): Promise<void> => {
   await multiConnectionTransaction(
     pools,
@@ -35,15 +38,15 @@ export const processBotWithTransaction = async (
         console.log(`Bot found and locked:`, bot);
 
         const createAgent = await updateCallback(bot);
-        if (!createAgent) {
-          throw new Error("Error during call api create agent")
-        }
+        // if (!createAgent) {
+        //   throw new Error("Error during call api create agent")
+        // }
         const updateQuery = `
           UPDATE bots
-          SET state = 'created', updated_at = NOW()
+          SET state = 'created', updated_at = NOW(), agent_id = $2
           WHERE id = $1;
         `;
-        await pgClient.query(updateQuery, [botId]);
+        await pgClient.query(updateQuery, [botId, createAgent.id]);
 
         console.log(`Bot with botId ${botId} updated to 'created'.`);
       } catch (error) {
@@ -58,9 +61,16 @@ export const processBotWithTransaction = async (
 
 const callApiGenBot = async (bot: BotInfo) => {
   try {
+    let botCategory = Number(bot.category_ids?.[0])
+    if (!botCategory) {
+      botCategory = 0
+    }
+
+    let parentId = agentTypeConfig[botCategory].parentAgentId
+
     let dataExp: CreateAgentRequestBody = {
-      "id": String(bot.agent_id),
       "name": String(bot.name),
+      "parentId": parentId,
       ...bot.setting_mode
     }
 
