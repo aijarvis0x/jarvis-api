@@ -1,9 +1,61 @@
+import { BotState } from "../constants.js";
+
 export enum ModelProvider {
   openai = 'openai'
 }
 
 export enum PluginType {
   elizaos_plugin_suimarket = '@elizaos/plugin-suimarket'
+}
+
+export enum AdjectivesType {
+  ANALYTICAL = "analytical",
+  PRECISE = "precise",
+  DATA_DRIVEN = "data-driven",
+  METHODICAL = "methodical",
+  CAUTIOUS = "cautious",
+  STRATEGIC = "strategic",
+  OBJECTIVE = "objective",
+  INSIGHTFUL = "insightful",
+  PROFESSIONAL = "professional",
+  VIGILANT = "vigilant",
+  RATIONAL = "rational",
+  THOROUGH = "thorough"
+}
+
+export enum VoiceType {
+	en_US_male_medium = 'en_US-male-medium'
+}
+
+export type BotSettingMode = {
+  clients: String[],
+  modelProvider: ModelProvider,
+  settings: {
+    secrets: Record<string, any>;
+    voice: {
+      model: VoiceType;
+    };
+  }
+  plugins: PluginType[],
+  adjectives: AdjectivesType[],
+  bio: String[],
+  lore: String[],
+  knowledge: String[],
+  messageExamples: Array<
+    Array<{
+      user: string;
+      content: {
+        text: string;
+      };
+    }>
+  >;
+  postExamples: string[];
+  topics: string[];
+  style: {
+    all: string[];
+    chat: string[];
+    post: string[];
+  };
 }
 
 export const SETTING_MODE_DEFAULT = JSON.stringify({
@@ -110,3 +162,24 @@ export const SETTING_MODE_DEFAULT = JSON.stringify({
 		]
 	}
 })
+
+export type BotInfo = {
+  id: string,
+  name?: string,
+  avatar?: string,
+  agent_id?: string,
+  background?: string,
+  setting_mode: BotSettingMode,
+  nsfw?: boolean,
+  tag?: string,
+  sub_tag?: string,
+  description?: string,
+  state?: BotState,
+  is_published?: boolean,
+  is_prompt_published?: boolean,
+  category_ids?: bigint[],
+  website?: string,
+  telegram?: string,
+  discord?: string,
+  x?: string
+}

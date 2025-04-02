@@ -4,11 +4,10 @@ import { deleteMessage, receiveMessages, SQSConfig } from "../lib/sqs.js";
 import { db } from "../lib/pg.js"
 import { Pool } from "pg";
 import { createAgent, CreateAgentRequestBody } from "./api.lib.js";
-import { BotInfo } from "../services/bot.service.js";
+// import { BotInfo } from "../services/bot.service.js";
 import { integer } from "aws-sdk/clients/cloudfront.js";
 import { Integer } from "aws-sdk/clients/apigateway.js";
 import { agentTypeConfig } from "../config/agent.js";
-
 
 
 export const processBotWithTransaction = async (
@@ -59,15 +58,17 @@ export const processBotWithTransaction = async (
 };
 
 
-const callApiGenBot = async (bot: BotInfo) => {
+const callApiGenBot = async (bot) => {
   try {
     console.log(`Start call api create bot with info: \n\tname = ${bot.name}\n\tcategories = ${bot.category_ids}`);
     
 
     let botCategory = Number(bot.category_ids?.[0])
-    // if (!botCategory) {
-    //   botCategory = 0
-    // }
+    if (!botCategory) {
+      console.log(`Not found bot's categories, set default = 0 "MonCryptoMan"`);
+      
+      botCategory = 0
+    }
 
     let parentId = agentTypeConfig[botCategory].parentAgentId
 
@@ -118,3 +119,6 @@ export const startProcessing = async (config: SQSConfig): Promise<void> => {
 startProcessing({
   queueUrl: String(AWS_SQS_CREATE_AI_AGENT),
 })
+
+
+// processBotWithTransaction([db.pool], String(64), callApiGenBot);

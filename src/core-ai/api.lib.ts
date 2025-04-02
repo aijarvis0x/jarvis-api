@@ -1,6 +1,6 @@
+import { BotSettingMode } from "../config/create-bot.js";
 import { SERVER_5SON_AI_CORE } from "../env.js";
 import HttpClient from "../lib/axios.js";
-import { AdjectivesType, BotSettingMode, ModelProvider, PluginType, VoiceType } from "../services/bot.service.js";
 
 
 

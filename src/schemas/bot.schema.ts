@@ -1,7 +1,7 @@
 import { z } from "zod"
-import { AdjectivesType, ModelProvider, PluginType, VoiceType } from "../services/bot.service.js";
 import { paginationSchema } from "./generic-schemas.js";
 import { MarketFilter } from "../constants.js";
+import { AdjectivesType, ModelProvider, PluginType, VoiceType } from "../config/create-bot.js";
 
 const MAX_BIO_LORE_LENGTH = 30;
 const MAX_KNOWLEDGE_LENGTH = 100;
