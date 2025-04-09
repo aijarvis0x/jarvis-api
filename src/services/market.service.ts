@@ -5,7 +5,7 @@ import dayjs from "dayjs"
 import { createEventHistory, createTransaction, findBotByNftId, findBotByOnlyNftId, findBotDelistableByNftId, updateBotLastestActOnchain, updateBotOwner, updateBotOwnerNotLastact, updateNftOwner } from "./bot.service.js"
 import { buyOrder, cancelOrder, createOrder, CreateOrderParams, findOrderByOrderId, findOrderByTx, updateOrderState, updatePriceOrder } from "./order.service.js"
 import { MINT_AI_FEE } from "../env.js"
-import { findUserByAddress } from "./users.service.js"
+import { createUser, findUserByAddress } from "./users.service.js"
 import { multiConnectionTransaction } from "../lib/db/transaction.js"
 import { EventLog } from "web3"
 import { TxStatus } from "../utils/monad-utils.js"
@@ -27,9 +27,9 @@ export const confirmItemListedMarket = async (
                     throw new Error(`Bot doesn't exist or has been updated`);
                 }
 
-                const seller = await findUserByAddress(String(event?.returnValues?.seller))
+                let seller = await findUserByAddress(String(event?.returnValues?.seller))
                 if (!seller) {
-                    throw new Error(`Seller doesn't exist`);
+                    seller = await createUser(String(event?.returnValues?.seller), pgClient)
                 }
                 //check order existed
                 let order = await findOrderByTx(String(event?.transactionHash))
@@ -37,7 +37,7 @@ export const confirmItemListedMarket = async (
                 if (order) {
                     throw new Error(`Order is existed`);
                 }
-                
+
                 let eventName = "Listed"
                 //check transaction existed?
                 let log = await createTransaction(pgClient, {
@@ -125,9 +125,9 @@ export const reUpdateOwner = async (
                     throw new Error(`Bot doesn't exist or has been updated`);
                 }
 
-                const seller = await findUserByAddress(String(event?.returnValues?.seller), pgClient)
+                let seller = await findUserByAddress(String(event?.returnValues?.seller), pgClient)
                 if (!seller) {
-                    throw new Error(`Seller doesn't exist`);
+                    seller = await createUser(String(event?.returnValues?.seller), pgClient)
                 }
 
 
@@ -168,11 +168,11 @@ export const confirmItemCancelledMarket = async (
                     throw new Error(`Bot doesn't exist or has been updated`);
                 }
 
-                const seller = await findUserByAddress(order?.seller_address)
+                let seller = await findUserByAddress(order?.seller_address)
                 if (!seller) {
-                    throw new Error(`Seller doesn't exist`);
+                    seller = await createUser(String(order?.seller_address), pgClient)
                 }
-                
+
                 let eventName = "Cancelled"
                 //check transaction existed?
                 let log = await createTransaction(pgClient, {
@@ -242,11 +242,11 @@ export const confirmItemSoldMarket = async (
                     throw new Error(`Bot doesn't exist or has been updated`);
                 }
 
-                const buyer = await findUserByAddress(String(event?.returnValues?.buyer))
+                let buyer = await findUserByAddress(String(event?.returnValues?.buyer))
                 if (!buyer) {
-                    throw new Error(`Buyer not exist`);
+                    buyer = await createUser(String(event?.returnValues?.buyer), pgClient)
                 }
-                
+
                 let eventName = "Sold"
                 //check transaction existed?
                 let log = await createTransaction(pgClient, {
