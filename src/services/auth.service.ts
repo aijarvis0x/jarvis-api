@@ -11,8 +11,50 @@ export type User = {
     address?: string | null
 }
 
+async function addFriend(userId, userRefId) {
+    let checkUserFriend: any = await db.pool.query(`
+        SELECT * FROM friends WHERE user_id = $1
+    `, [userRefId])
+
+    checkUserFriend = checkUserFriend.rows[0] ?? null
+    let friendIds: Array<any>
+    if (checkUserFriend) {
+        friendIds = checkUserFriend.friend_ids
+        friendIds.push(userId)
+
+        await db.pool.query(`
+            UPDATE friends
+            SET friend_ids = $1
+            WHERE user_id = $2
+        `, [friendIds, userRefId])
+    } else {
+        friendIds = [userId]
+
+        await db.pool.query(`
+            INSERT INTO friends (
+                user_id,
+                friend_ids
+            ) VALUES (
+                $1,
+                $2
+            )
+        `, [userRefId, friendIds])
+    }
+
+    await db.pool.query(`
+        INSERT INTO friends (
+            user_id,
+            friend_ids
+        ) VALUES (
+            $1,
+            $2
+        )
+    `, [userId, [userRefId]])
+}
+
 export async function login(
-    address: string
+    address: string,
+    userRefId: number | undefined
 ) {
     //check exist user
     let user = await findUserByAddress(address)
@@ -27,6 +69,8 @@ export async function login(
         )
 
         result = result.rows[0] ?? null
+
+        await addFriend(result.id, userRefId)
     }
 
     //gen token
@@ -38,7 +82,6 @@ export async function login(
         token,
         user: result
     }
-
 }
 
 export async function discordCallback(code: string, userId: bigint) {

@@ -305,3 +305,17 @@ model XAccount {
 
   @@map("x_account")
 }
+
+model Friend {
+  id              BigInt    @id @default(autoincrement())
+  userId          BigInt?   @map("user_id")
+  friendIds       Json?     @map("friend_ids")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @map("updated_at")
+  
+  @@unique([userId])
+
+  @@map("friends")
+}
+
+

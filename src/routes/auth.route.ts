@@ -42,7 +42,7 @@ export default async (app: AppInstance) => {
             body: loginSchema,
         },
         handler: async (request, reply) => {
-            const { address, signature, messageHash } = request.body;
+            const { address, signature, messageHash, userRefId } = request.body;
 
             try {
                 //verify signature
@@ -59,7 +59,7 @@ export default async (app: AppInstance) => {
                 }
 
                 //login -> gen token
-                let userData = await login(address);
+                let userData = await login(address, userRefId);
 
                 return reply.status(200).send({
                     message: "OK",

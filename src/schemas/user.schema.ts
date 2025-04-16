@@ -5,7 +5,8 @@ export const loginSchema = z.object({
     .string(),
     // .refine((v) => isValidSuiAddress(v), "Invalid sui address"),
   messageHash: z.string(),
-  signature: z.string()
+  signature: z.string(),
+  userRefId: z.number().optional()
 })
 
 export const discordCallbackSchema = z.object({
