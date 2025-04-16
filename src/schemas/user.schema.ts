@@ -8,6 +8,15 @@ export const loginSchema = z.object({
   signature: z.string()
 })
 
+export const discordCallbackSchema = z.object({
+  code: z.string()
+})
+
+export const xCallbackSchema = z.object({
+  code: z.string(),
+  state: z.string()
+})
+
 export const changeUserNameSchema = z.object({
   new_name: z
     .string()
