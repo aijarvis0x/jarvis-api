@@ -207,4 +207,24 @@ export default async (app: AppInstance) => {
             }
         },
     });
+
+    app.get("/get-ref-code", {
+        schema: {
+            tags: ["Auth"],
+        },
+        onRequest: app.authenticate,
+        handler: async (request, reply) => {
+            try {
+                const {userId} = request;
+                return {
+                    message: "OK",
+                    data: {
+                        refCode: userId
+                    },
+                };
+            } catch (error: any) {
+                return reply.code(500).send({ error: error.message });
+            }
+        },
+    });
 };
