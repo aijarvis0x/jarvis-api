@@ -26,7 +26,7 @@ async function addFriend(userId, userRefId) {
             UPDATE friends
             SET friend_ids = $1
             WHERE user_id = $2
-        `, [friendIds, userRefId])
+        `, [JSON.stringify(friendIds), userRefId])
     } else {
         friendIds = [userId]
 
@@ -38,7 +38,7 @@ async function addFriend(userId, userRefId) {
                 $1,
                 $2
             )
-        `, [userRefId, friendIds])
+        `, [userRefId, JSON.stringify(friendIds)])
     }
 
     await db.pool.query(`
@@ -49,7 +49,7 @@ async function addFriend(userId, userRefId) {
             $1,
             $2
         )
-    `, [userId, [userRefId]])
+    `, [userId, JSON.stringify([userRefId])])
 }
 
 export async function login(
