@@ -63,6 +63,7 @@ export const googleClient = new AuthorizationCode({
 export const GOOGLE_SCOPE = ["profile", "email"];
 export const GOOGLE_CALLBACK_URI =
     `${process.env.SERVER_URI}/api/auth/google/callback`;
+export const GOOGLE_STATE = "random_string_for_security"
 
 export type GoogleToken = {
     token: {
