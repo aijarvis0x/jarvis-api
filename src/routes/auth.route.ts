@@ -102,8 +102,9 @@ export default async (app: AppInstance) => {
         onRequest: app.authenticate,
         handler: async (request, reply) => {
             try {
+                const {userId} = request;
                 const { code } = request.query;
-                await discordCallback(code);
+                await discordCallback(code, userId);
                 return {
                     message: "OK",
                     data: {},
@@ -146,8 +147,9 @@ export default async (app: AppInstance) => {
         onRequest: app.authenticate,
         handler: async (request, reply) => {
             try {
+                const {userId} = request;
                 const { code } = request.query;
-                await googleCallback(code);
+                await googleCallback(code, userId);
                 return {
                     message: "OK",
                     data: {},
@@ -193,8 +195,9 @@ export default async (app: AppInstance) => {
         onRequest: app.authenticate,
         handler: async (request, reply) => {
             try {
+                const {userId} = request;
                 const { code, state } = request.query;
-                await XCallback(code);
+                await XCallback(code, userId);
                 return {
                     message: "OK",
                     data: {},

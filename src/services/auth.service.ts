@@ -41,7 +41,7 @@ export async function login(
 
 }
 
-export async function discordCallback(code: string) {
+export async function discordCallback(code: string, userId: bigint) {
     try {
         const token: DiscordToken = await discordClient.getToken({
             code,
@@ -61,7 +61,29 @@ export async function discordCallback(code: string) {
 
         if (response.status == 200) {
             const data: DiscordMeResponse = response.data;
-            return response.data;
+
+            let query = `
+                INSERT INTO discord_account (
+                    user_id,
+                    account_id,
+                    account_info
+                ) VALUES (
+                    $1,
+                    $2,
+                    $3
+                )
+                RETURNING id;
+            `
+            let values = [
+                userId,
+                data.id,
+                data
+            ]
+
+            let result = await db.pool.query(query, values);
+
+            const account = result.rows[0].id;
+            return account;
         } else {
             throw new Error(`No response from discord server`);
         }
@@ -71,7 +93,7 @@ export async function discordCallback(code: string) {
     }
 }
 
-export async function googleCallback(code: string) {
+export async function googleCallback(code: string, userId: bigint) {
     try {
         const token: GoogleToken = await googleClient.getToken({
             code,
@@ -91,7 +113,28 @@ export async function googleCallback(code: string) {
         
         if (response.status == 200) {
             const data: GoogleMeResponse = response.data;
-            return response.data;
+            let query = `
+                INSERT INTO google_account (
+                    user_id,
+                    account_id,
+                    account_info
+                ) VALUES (
+                    $1,
+                    $2,
+                    $3
+                )
+                RETURNING id;
+            `
+            let values = [
+                userId,
+                data.email,
+                data
+            ]
+
+            let result = await db.pool.query(query, values);
+
+            const account = result.rows[0].id;
+            return account;
         } else {
             throw new Error(`No response from discord server`);
         }
@@ -101,7 +144,7 @@ export async function googleCallback(code: string) {
     }
 }
 
-export async function XCallback(code: string) {
+export async function XCallback(code: string, userId: bigint) {
     try {
         const token: XToken = await getXToken(code);
 
@@ -118,7 +161,28 @@ export async function XCallback(code: string) {
 
         if (response.status == 200) {
             const data: XMeResponse = response.data;
-            return response.data;
+            let query = `
+                INSERT INTO x_account (
+                    user_id,
+                    account_id,
+                    account_info
+                ) VALUES (
+                    $1,
+                    $2,
+                    $3
+                )
+                RETURNING id;
+            `
+            let values = [
+                userId,
+                data.data.id,
+                data
+            ]
+
+            let result = await db.pool.query(query, values);
+
+            const account = result.rows[0].id;
+            return account;
         } else {
             throw new Error(`No response from discord server`);
         }
