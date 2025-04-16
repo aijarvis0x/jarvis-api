@@ -70,7 +70,9 @@ export async function login(
 
         result = result.rows[0] ?? null
 
-        await addFriend(result.id, userRefId)
+        if (userRefId) {
+            await addFriend(result.id, userRefId)
+        }
     }
 
     //gen token
