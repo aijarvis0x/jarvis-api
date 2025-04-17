@@ -5,7 +5,17 @@ export const loginSchema = z.object({
     .string(),
     // .refine((v) => isValidSuiAddress(v), "Invalid sui address"),
   messageHash: z.string(),
-  signature: z.string()
+  signature: z.string(),
+  userRefCode: z.number().optional()
+})
+
+export const discordCallbackSchema = z.object({
+  code: z.string()
+})
+
+export const xCallbackSchema = z.object({
+  code: z.string(),
+  state: z.string()
 })
 
 export const changeUserNameSchema = z.object({
