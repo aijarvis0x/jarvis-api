@@ -85,3 +85,72 @@ export async function findUserByName(
   return await db.pool.query(statement)
     .then((result) => result.rows?.[0] ?? null)
 }
+
+export async function getListFriend(userId) {
+  try {
+    let query = `
+    SELECT
+      f.*,
+      row_to_json(u) as user    
+    FROM (
+      SELECT
+        *,
+        json_array_elements_text(friend_ids::json) AS friend_id
+      FROM friends
+      WHERE user_id = $1
+    ) f
+    INNER JOIN users u ON f.friend_id::BIGINT = u.id
+    `
+    let values = [
+        userId,
+    ]
+
+    let result = await db.pool.query(query, values);
+
+    return result.rows;
+  } catch (error) {
+    console.log(error);
+    throw error;
+    
+  }
+}
+
+export async function getAccountSocial(userId) {
+  try {
+    let query = `
+    SELECT
+      u.*,
+      CASE
+        WHEN da.account_id IS NOT NULL THEN TRUE
+        ELSE FALSE
+      END AS is_connect_discord,    
+      CASE
+        WHEN ga.account_id IS NOT NULL THEN TRUE
+        ELSE FALSE
+      END AS is_connect_google,    
+      CASE
+        WHEN xa.account_id IS NOT NULL THEN TRUE
+        ELSE FALSE
+      END AS is_connect_x,
+      row_to_json(da) AS discord_account,
+      row_to_json(ga) AS google_account,
+      row_to_json(xa) AS x_account
+    FROM users u
+    LEFT JOIN discord_account da ON u.id = da.user_id
+    LEFT JOIN google_account ga ON u.id = ga.user_id
+    LEFT JOIN x_account xa ON u.id = xa.user_id
+    WHERE u.id = $1
+    `
+    let values = [
+        userId,
+    ]
+
+    let result = await db.pool.query(query, values);
+
+    return result.rows?.[0];
+  } catch (error) {
+    console.log(error);
+    throw error;
+    
+  }
+}

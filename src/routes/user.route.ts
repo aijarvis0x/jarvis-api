@@ -3,7 +3,7 @@ import {
     changeUserNameSchema,
     uploadAvatarSchema
 } from "../schemas/user.schema.js"
-import { changeNameOfUser, findUserByAddress, findUserByName, updateUserAvatar } from "../services/users.service.js"
+import { changeNameOfUser, findUserByAddress, findUserByName, getAccountSocial, getListFriend, updateUserAvatar } from "../services/users.service.js"
 
 import type { AppInstance } from "../types.js"
 import configureFileUpload from "../utils/s3.js"
@@ -107,6 +107,52 @@ export default async (app: AppInstance) => {
             } catch (err) {
                 console.error(err);
                 return reply.status(500).send({ message: "Failed to upload avatar" });
+            }
+        }
+    });
+
+    app.get("/list-friends", {
+        schema: {
+            tags: ["User"],
+        },
+        onRequest: app.authenticate,
+        handler: async (request, reply) => {
+            try {
+                const {userId} = request;
+                
+                let result = await getListFriend(userId);
+                
+                return {
+                    message: "OK",
+                    data: {
+                        listFriends: result
+                    },
+                };
+            } catch (error: any) {
+                return reply.code(500).send({ error: error.message });
+            }
+        }
+    });
+
+    app.get("/list-account-social", {
+        schema: {
+            tags: ["User"],
+        },
+        onRequest: app.authenticate,
+        handler: async (request, reply) => {
+            try {
+                const {userId} = request;
+                
+                let result = await getAccountSocial(userId);
+                
+                return {
+                    message: "OK",
+                    data: {
+                        account: result
+                    },
+                };
+            } catch (error: any) {
+                return reply.code(500).send({ error: error.message });
             }
         }
     });
