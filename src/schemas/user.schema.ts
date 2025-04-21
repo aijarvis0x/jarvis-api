@@ -10,7 +10,13 @@ export const loginSchema = z.object({
 })
 
 export const discordCallbackSchema = z.object({
-  code: z.string()
+  code: z.string(),
+  state: z.string()
+})
+
+export const googleCallbackSchema = z.object({
+  code: z.string(),
+  state: z.string()
 })
 
 export const xCallbackSchema = z.object({

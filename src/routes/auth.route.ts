@@ -2,6 +2,7 @@ import fastify from "fastify";
 import { verifySignature } from "../plugins/verify-sign.js";
 import {
     discordCallbackSchema,
+    googleCallbackSchema,
     loginSchema,
     xCallbackSchema,
 } from "../schemas/user.schema.js";
@@ -33,6 +34,11 @@ import {
     GOOGLE_STATE,
 } from "../config/o2auth.js";
 import HttpClient from "../lib/axios.js";
+import jwt from "jsonwebtoken"; 
+import * as fs from "fs";
+import CryptoJS from 'crypto-js';
+
+const privateKEY = fs.readFileSync("./src/keys/private.pem", "utf-8");
 
 export default async (app: AppInstance) => {
     //sign up
@@ -78,9 +84,12 @@ export default async (app: AppInstance) => {
         onRequest: app.authenticate,
         handler: async (request, reply) => {
             try {
+                const {userId} = request;
+                const state = jwt.sign({ userId }, privateKEY, { algorithm: "RS256", expiresIn: "1d" });
                 const uri = discordClient.authorizeURL({
                     redirect_uri: DISCORD_CALLBACK_URI,
                     scope: DISCORD_SCOPE,
+                    state
                 });
                 return {
                     message: "OK",
@@ -99,16 +108,26 @@ export default async (app: AppInstance) => {
             tags: ["Auth"],
             querystring: discordCallbackSchema,
         },
-        onRequest: app.authenticate,
         handler: async (request, reply) => {
             try {
-                const {userId} = request;
-                const { code } = request.query;
-                await discordCallback(code, userId);
-                return {
-                    message: "OK",
-                    data: {},
-                };
+                const { code, state } = request.query;
+                let userId;
+                try {
+                    const decoded: any = jwt.verify(state, privateKEY);
+                    userId = decoded.userId;
+                } catch (error) {
+                    throw new Error("Invalid or expired state");
+                }
+                if (userId) {
+                    await discordCallback(code, userId);
+                    return {
+                        message: "OK",
+                        data: {},
+                    };
+                } else {
+                    throw new Error("Error when connect discord account")
+                }
+
             } catch (error: any) {
                 return reply.code(500).send({ error: error.message });
             }
@@ -122,10 +141,12 @@ export default async (app: AppInstance) => {
         onRequest: app.authenticate,
         handler: async (request, reply) => {
             try {
+                const {userId} = request;
+                const state = jwt.sign({ userId }, privateKEY, { algorithm: "RS256", expiresIn: "1d" });
                 const uri = googleClient.authorizeURL({
                     redirect_uri: GOOGLE_CALLBACK_URI,
                     scope: GOOGLE_SCOPE,
-                    state: GOOGLE_STATE,
+                    state,
                 });
                 return {
                     message: "OK",
@@ -142,18 +163,27 @@ export default async (app: AppInstance) => {
     app.get("/google/callback", {
         schema: {
             tags: ["Auth"],
-            querystring: discordCallbackSchema,
+            querystring: googleCallbackSchema,
         },
-        onRequest: app.authenticate,
         handler: async (request, reply) => {
             try {
-                const {userId} = request;
-                const { code } = request.query;
-                await googleCallback(code, userId);
-                return {
-                    message: "OK",
-                    data: {},
-                };
+                const { code, state } = request.query;
+                let userId;
+                try {
+                    const decoded: any = jwt.verify(state, privateKEY);
+                    userId = decoded.userId;
+                } catch (error) {
+                    throw new Error("Invalid or expired state");
+                }
+                if (userId) {
+                    await googleCallback(code, userId);
+                    return {
+                        message: "OK",
+                        data: {},
+                    };
+                } else {
+                    throw new Error("Error when connect google account")
+                }
             } catch (error: any) {
                 return reply.code(500).send({ error: error.message });
             }
@@ -167,10 +197,12 @@ export default async (app: AppInstance) => {
         onRequest: app.authenticate,
         handler: async (request, reply) => {
             try {
+                const {userId} = request;
+                const userIdJWT = CryptoJS.AES.encrypt(String(userId), privateKEY).toString();
                 const uri = XClient.authorizeURL({
                     redirect_uri: X_CALLBACK_URI,
                     scope: X_SCOPE,
-                    state: X_STATE,
+                    state: userIdJWT,
                     code_challenge: X_CODE_CHALLENGE,
                     code_challenge_method: "plain",
                     response_type: "code",
@@ -192,16 +224,26 @@ export default async (app: AppInstance) => {
             tags: ["Auth"],
             querystring: xCallbackSchema,
         },
-        onRequest: app.authenticate,
         handler: async (request, reply) => {
             try {
-                const {userId} = request;
                 const { code, state } = request.query;
-                await XCallback(code, userId);
-                return {
-                    message: "OK",
-                    data: {},
-                };
+                let userId;
+                try {
+                    const bytes = CryptoJS.AES.decrypt(state, privateKEY);
+                    userId = bytes.toString(CryptoJS.enc.Utf8);
+                    userId = Number(userId)
+                } catch (error) {
+                    throw new Error("Invalid or expired state");
+                }
+                if (userId) {
+                    await XCallback(code, userId);
+                    return {
+                        message: "OK",
+                        data: {},
+                    };
+                } else {
+                    throw new Error("Error when connect X account")
+                }
             } catch (error: any) {
                 return reply.code(500).send({ error: error.message });
             }
