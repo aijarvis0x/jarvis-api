@@ -153,3 +153,51 @@ export async function getAccountSocial(userId) {
     
   }
 }
+
+export async function createRefCode(userId) {
+  try {
+    let query = `
+      INSERT INTO user_ref_code (
+        user_id,
+        ref_code
+      ) VALUES (
+        $1,
+        $2
+      )
+      RETURNING ref_code;
+    `
+    let values = [
+      userId,
+      userId
+    ]
+
+    let result = await db.pool.query(query, values);
+
+    return result.rows?.[0];
+  } catch (error) {
+    console.log(error);
+    throw error
+  }
+}
+
+export async function getRefCode(userId) {
+  try {
+    let query = `
+      SELECT
+        ref_code
+      FROM user_ref_code
+      WHERE user_id = $1
+      LIMIT 1
+    `
+    let values = [
+      userId
+    ]
+
+    let result = await db.pool.query(query, values);
+
+    return result.rows?.[0]?.ref_code;
+  } catch (error) {
+    console.log(error);
+    throw error
+  }
+}
