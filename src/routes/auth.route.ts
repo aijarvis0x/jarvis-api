@@ -51,18 +51,18 @@ export default async (app: AppInstance) => {
             const { address, signature, messageHash, userRefCode } = request.body;
 
             try {
-                // //verify signature
-                // const verified = verifySignature(
-                //     messageHash,
-                //     signature,
-                //     address
-                // );
+                //verify signature
+                const verified = verifySignature(
+                    messageHash,
+                    signature,
+                    address
+                );
 
-                // if (!verified) {
-                //     return reply.status(401).send({
-                //         message: "Signature incorrect",
-                //     });
-                // }
+                if (!verified) {
+                    return reply.status(401).send({
+                        message: "Signature incorrect",
+                    });
+                }
 
                 //login -> gen token
                 let userData = await login(address, userRefCode);
