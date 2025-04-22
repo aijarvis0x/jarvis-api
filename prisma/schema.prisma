@@ -318,4 +318,40 @@ model Friend {
   @@map("friends")
 }
 
+model Item {
+  id                  BigInt      @id @default(autoincrement())
+  nftId               String?      @map("nft_id") @unique
+  userId              BigInt?      @map("user_id")
+  owner               String?
+
+  img                 String?
+  name                String?
+  nsfw                Boolean?
+  tag                 String?
+  subTag              String?     @map("sub_tag")
+  description         String?
+  attributes          Json?
+  settingMode         Json?       @map("setting_mode")
+
+  state               String?
+  isPublished         Boolean?     @default(false) @map("is_published")
+  isPromptPublished   Boolean?     @default(false) @map("is_prompt_published")
+  categoryIds         Json?       @map("category_ids")
+
+  lastestPrice        BigInt?     @map("lastest_price")
+  highestPrice        BigInt?     @map("highest_price")
+  lowestPrice         BigInt?     @map("lowest_price")
+  countConversation   BigInt?     @map("count_conversation")
+
+  fee                 String?
+  expiredTime         DateTime?   @map("expired_time")
+  txHash              String?     @map("tx_hash") @db.VarChar(66)
+
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @default(now()) @map("updated_at")
+  lastestAct          BigInt?     @map("lastest_act")
+
+  @@map("items")
+}
+
 
