@@ -51,18 +51,18 @@ export default async (app: AppInstance) => {
             const { address, signature, messageHash, userRefCode } = request.body;
 
             try {
-                //verify signature
-                const verified = verifySignature(
-                    messageHash,
-                    signature,
-                    address
-                );
+                // //verify signature
+                // const verified = verifySignature(
+                //     messageHash,
+                //     signature,
+                //     address
+                // );
 
-                if (!verified) {
-                    return reply.status(401).send({
-                        message: "Signature incorrect",
-                    });
-                }
+                // if (!verified) {
+                //     return reply.status(401).send({
+                //         message: "Signature incorrect",
+                //     });
+                // }
 
                 //login -> gen token
                 let userData = await login(address, userRefCode);
@@ -250,23 +250,5 @@ export default async (app: AppInstance) => {
         },
     });
 
-    app.get("/get-ref-code", {
-        schema: {
-            tags: ["Auth"],
-        },
-        onRequest: app.authenticate,
-        handler: async (request, reply) => {
-            try {
-                const {userId} = request;
-                return {
-                    message: "OK",
-                    data: {
-                        refCode: userId
-                    },
-                };
-            } catch (error: any) {
-                return reply.code(500).send({ error: error.message });
-            }
-        },
-    });
+
 };

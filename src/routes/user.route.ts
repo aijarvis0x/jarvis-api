@@ -3,7 +3,7 @@ import {
     changeUserNameSchema,
     uploadAvatarSchema
 } from "../schemas/user.schema.js"
-import { changeNameOfUser, findUserByAddress, findUserByName, getAccountSocial, getListFriend, updateUserAvatar } from "../services/users.service.js"
+import { changeNameOfUser, createRefCode, findUserByAddress, findUserByName, getAccountSocial, getListFriend, getRefCode, updateUserAvatar } from "../services/users.service.js"
 
 import type { AppInstance } from "../types.js"
 import configureFileUpload from "../utils/s3.js"
@@ -33,7 +33,7 @@ export default async (app: AppInstance) => {
 
                 const socialAccount = await getAccountSocial(user.id)
                 const listFriends = await getListFriend(user.id);
-
+                const refCode = await getRefCode(user.id)
 
 
                 return reply.status(200).send({
@@ -41,7 +41,8 @@ export default async (app: AppInstance) => {
                     data: {
                         user,
                         socialAccount,
-                        listFriends
+                        listFriends,
+                        refCode: refCode ? refCode : null
                     }
                 })
             } catch (error) {
@@ -163,6 +164,28 @@ export default async (app: AppInstance) => {
                 return reply.code(500).send({ error: error.message });
             }
         }
+    });
+
+    app.post("/get-ref-code", {
+        schema: {
+            tags: ["User"],
+        },
+        onRequest: app.authenticate,
+        handler: async (request, reply) => {
+            try {
+                const {userId} = request;
+
+                const refCode = await createRefCode(userId);
+                return {
+                    message: "OK",
+                    data: {
+                        refCode: refCode
+                    },
+                };
+            } catch (error: any) {
+                return reply.code(500).send({ error: error.message });
+            }
+        },
     });
 
 }
