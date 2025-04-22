@@ -31,10 +31,18 @@ export default async (app: AppInstance) => {
                     user = await findUserByAddress(_name)
                 }
 
+                const socialAccount = await getAccountSocial(user.id)
+                const listFriends = await getListFriend(user.id);
+
+
 
                 return reply.status(200).send({
                     message: "OK",
-                    data: user
+                    data: {
+                        user,
+                        socialAccount,
+                        listFriends
+                    }
                 })
             } catch (error) {
                 console.log(error)

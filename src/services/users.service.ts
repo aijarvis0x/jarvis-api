@@ -119,7 +119,6 @@ export async function getAccountSocial(userId) {
   try {
     let query = `
     SELECT
-      u.*,
       CASE
         WHEN da.account_id IS NOT NULL THEN TRUE
         ELSE FALSE
