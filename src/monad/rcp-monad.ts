@@ -1,6 +1,7 @@
 import { Web3 } from 'web3';
 import { MintNftABI } from './abi/mint-nft.abi.js';
 import { MarketABI } from './abi/market.abi.js';
+import { ItemNftABI } from './abi/item-nft.api.js';
 
 const MONAD_RPC = process.env.CHAIN_NETWORK === "mainnet" ? "https://rpc.monad.xyz" : (process.env.MONAD_TESTNET_NODE ?? "https://testnet-rpc.monad.xyz");
 const NETWORK_NAME = "Monad Testnet";
@@ -12,6 +13,11 @@ export const web3 = new Web3(new Web3.providers.HttpProvider(MONAD_RPC));
 export const MintNftContract = new web3.eth.Contract(
     MintNftABI,
     String(process.env.NFT_CONTRACT_ADDRESS)
+);
+
+export const MintItemNftContract = new web3.eth.Contract(
+    ItemNftABI,
+    String(process.env.ITEM_NFT_CONTRACT_ADDRESS)
 );
 
 export const MarketContract = new web3.eth.Contract(

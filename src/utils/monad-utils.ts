@@ -31,6 +31,13 @@ export type MintNftEvent = {
   packageId: number
 }
 
+export type MintItemNftEvent = {
+  owner: string,
+  tokenId: string,
+  agentType: number,
+  packageId: number
+}
+
 
 // export function parseMonadTransaction(
 //   tx: any
