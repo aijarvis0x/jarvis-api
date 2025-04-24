@@ -1,8 +1,8 @@
 export const ItemNftABI = [
     {
         inputs: [
-            { internalType: "address", name: "tokenFee", type: "address" },
-            { internalType: "uint8", name: "agentAmount", type: "uint8" },
+            { internalType: "address", name: "paymentToken", type: "address" },
+            { internalType: "uint256", name: "mintingFee", type: "uint256" },
         ],
         stateMutability: "nonpayable",
         type: "constructor",
@@ -75,13 +75,7 @@ export const ItemNftABI = [
             {
                 indexed: false,
                 internalType: "uint8",
-                name: "agentType",
-                type: "uint8",
-            },
-            {
-                indexed: false,
-                internalType: "uint8",
-                name: "packageId",
+                name: "roundId",
                 type: "uint8",
             },
         ],
@@ -160,22 +154,30 @@ export const ItemNftABI = [
     },
     {
         inputs: [],
-        name: "_agentAmount",
-        outputs: [{ internalType: "uint8", name: "", type: "uint8" }],
-        stateMutability: "view",
-        type: "function",
-    },
-    {
-        inputs: [],
         name: "_baseTokenURI",
         outputs: [{ internalType: "string", name: "", type: "string" }],
         stateMutability: "view",
         type: "function",
     },
     {
-        inputs: [{ internalType: "uint8", name: "", type: "uint8" }],
+        inputs: [],
         name: "_mintingFee",
         outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [{ internalType: "uint8", name: "", type: "uint8" }],
+        name: "_mintingRounds",
+        outputs: [
+            { internalType: "bool", name: "isPublic", type: "bool" },
+            { internalType: "uint256", name: "totalSell", type: "uint256" },
+            { internalType: "uint256", name: "minted", type: "uint256" },
+            { internalType: "uint256", name: "startTime", type: "uint256" },
+            { internalType: "uint256", name: "endTime", type: "uint256" },
+            { internalType: "bytes32", name: "merkleRoot", type: "bytes32" },
+            { internalType: "uint8", name: "maxMintsPerWallet", type: "uint8" },
+        ],
         stateMutability: "view",
         type: "function",
     },
@@ -188,7 +190,7 @@ export const ItemNftABI = [
     },
     {
         inputs: [],
-        name: "_tokenFee",
+        name: "_paymentToken",
         outputs: [{ internalType: "address", name: "", type: "address" }],
         stateMutability: "view",
         type: "function",
@@ -211,9 +213,34 @@ export const ItemNftABI = [
         type: "function",
     },
     {
+        inputs: [
+            { internalType: "uint8", name: "roundId", type: "uint8" },
+            { internalType: "bool", name: "isPublic", type: "bool" },
+            { internalType: "uint256", name: "totalSell", type: "uint256" },
+            { internalType: "uint256", name: "startTime", type: "uint256" },
+            { internalType: "uint256", name: "endTime", type: "uint256" },
+            { internalType: "bytes32", name: "merkleRoot", type: "bytes32" },
+            { internalType: "uint8", name: "maxMintsPerWallet", type: "uint8" },
+        ],
+        name: "createRoundInfo",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
         inputs: [{ internalType: "uint256", name: "tokenId", type: "uint256" }],
         name: "getApproved",
         outputs: [{ internalType: "address", name: "", type: "address" }],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            { internalType: "uint8", name: "roundId", type: "uint8" },
+            { internalType: "address", name: "wallet", type: "address" },
+        ],
+        name: "getWalletMinted",
+        outputs: [{ internalType: "uint8", name: "", type: "uint8" }],
         stateMutability: "view",
         type: "function",
     },
@@ -229,9 +256,23 @@ export const ItemNftABI = [
     },
     {
         inputs: [
-            { internalType: "uint8", name: "agentType", type: "uint8" },
-            { internalType: "uint8", name: "packageId", type: "uint8" },
-            { internalType: "uint8", name: "quantity", type: "uint8" },
+            { internalType: "address", name: "user", type: "address" },
+            { internalType: "bytes32", name: "merkleRoot", type: "bytes32" },
+            { internalType: "bytes32[]", name: "proof", type: "bytes32[]" },
+        ],
+        name: "isWhitelisted",
+        outputs: [{ internalType: "bool", name: "", type: "bool" }],
+        stateMutability: "pure",
+        type: "function",
+    },
+    {
+        inputs: [
+            { internalType: "uint8", name: "roundId", type: "uint8" },
+            {
+                internalType: "bytes32[]",
+                name: "merkleProof",
+                type: "bytes32[]",
+            },
         ],
         name: "mint",
         outputs: [],
@@ -297,13 +338,6 @@ export const ItemNftABI = [
         type: "function",
     },
     {
-        inputs: [{ internalType: "uint8", name: "agentAmount", type: "uint8" }],
-        name: "setAgentAmount",
-        outputs: [],
-        stateMutability: "nonpayable",
-        type: "function",
-    },
-    {
         inputs: [
             { internalType: "address", name: "operator", type: "address" },
             { internalType: "bool", name: "approved", type: "bool" },
@@ -323,16 +357,6 @@ export const ItemNftABI = [
         type: "function",
     },
     {
-        inputs: [
-            { internalType: "uint8", name: "index", type: "uint8" },
-            { internalType: "uint256", name: "mintingFee", type: "uint256" },
-        ],
-        name: "setMintingFee",
-        outputs: [],
-        stateMutability: "nonpayable",
-        type: "function",
-    },
-    {
         inputs: [{ internalType: "bool", name: "pause", type: "bool" }],
         name: "setPause",
         outputs: [],
@@ -340,10 +364,18 @@ export const ItemNftABI = [
         type: "function",
     },
     {
+        inputs: [{ internalType: "address", name: "token", type: "address" }],
+        name: "setPaymentToken",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
         inputs: [
-            { internalType: "address", name: "tokenFee", type: "address" },
+            { internalType: "uint8", name: "roundId", type: "uint8" },
+            { internalType: "bytes32", name: "merkleRoot", type: "bytes32" },
         ],
-        name: "setTokenFee",
+        name: "setWhitelist",
         outputs: [],
         stateMutability: "nonpayable",
         type: "function",
@@ -387,6 +419,20 @@ export const ItemNftABI = [
             { internalType: "address", name: "newOwner", type: "address" },
         ],
         name: "transferOwnership",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            { internalType: "uint8", name: "roundId", type: "uint8" },
+            { internalType: "bool", name: "isPublic", type: "bool" },
+            { internalType: "uint256", name: "totalSell", type: "uint256" },
+            { internalType: "uint256", name: "startTime", type: "uint256" },
+            { internalType: "uint256", name: "endTime", type: "uint256" },
+            { internalType: "uint8", name: "maxMintsPerWallet", type: "uint8" },
+        ],
+        name: "updateRoundInfo",
         outputs: [],
         stateMutability: "nonpayable",
         type: "function",
