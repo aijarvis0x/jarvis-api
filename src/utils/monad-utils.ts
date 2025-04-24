@@ -34,8 +34,7 @@ export type MintNftEvent = {
 export type MintItemNftEvent = {
   owner: string,
   tokenId: string,
-  agentType: number,
-  packageId: number
+  roundId: number
 }
 
 

@@ -33,13 +33,12 @@ export async function createItem(
         nftId: string;
         ownerId: bigint;
         owner: string;
-        agentType: number;
-        packageId: number;
+        roundId: number;
         blockNumber: bigint;
     }
 ) {
     try {
-        const item = getItem(params.agentType)
+        const item = getItem(params.roundId)
         const insertQuery = `
             INSERT INTO items
             (
@@ -57,7 +56,7 @@ export async function createItem(
         `;
 
         const values = [
-            JSON.stringify([params.agentType]),
+            JSON.stringify([params.roundId]),
             item.name,
             params.nftId,
             params.ownerId,
@@ -68,7 +67,6 @@ export async function createItem(
 
         const result = await pool.query(insertQuery, values);
         const newItemId = result.rows[0].id;
-
 
         return BigInt(newItemId);
     } catch (error) {
@@ -101,10 +99,9 @@ export const confirmedMintItem = async (
                         blockNumber: Number(eventLog.blockNumber),
                         value: 0,
                         events: {
-                            owner: eventLog.returnValues.owner,
-                            tokenId: Number(eventLog?.returnValues?.tokenId),
-                            agentType: Number(eventLog.returnValues.agentType),
-                            packageId: Number(eventLog.returnValues.packageId),
+                            owner: event.owner,
+                            tokenId: Number(event.tokenId),
+                            roundId: Number(event.roundId)
                         },
                         logs: null,
                         confirmedAt: dayjs.utc().toDate(),
@@ -123,16 +120,15 @@ export const confirmedMintItem = async (
                         owner = await createUser(String(event.owner), pgClient);
                     }
 
-                    //create bot
-                    const botId = await createItem(pgClient, {
+                    //create item
+                    const itemId = await createItem(pgClient, {
                         nftId: String(event.tokenId),
                         owner: event.owner,
                         ownerId: BigInt(owner.id),
-                        agentType: Number(event.agentType),
-                        packageId: Number(event.packageId),
+                        roundId: Number(event.roundId),
                         blockNumber: BigInt(eventLog.blockNumber ?? 0),
                     });
-                    console.log("botId = ", botId);
+                    console.log("Item id = ", itemId);
                 } catch (error) {
                     bail(
                         new Error(
