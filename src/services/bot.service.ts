@@ -12,6 +12,7 @@ import { selectImageFromPool } from "../utils/s3-pool.js"
 import { s3Config } from "../config/s3-config.js"
 import { findOrderOfBots } from "./order.service.js"
 import { BotInfo, SETTING_MODE_DEFAULT } from "../config/create-bot.js"
+import { getValue } from "../utils/common.js"
 
 
 
@@ -719,7 +720,7 @@ export const createBot = async (pool: PoolClient, params: { nftId: string, owner
       1: "MonNurse",
       2: "MonAnime",
     }
-    const getValue = (obj: any, key: number, defaultValue: any) => obj?.[key] ?? defaultValue;
+    
     const description = getValue(descriptionMapping, params.agentType, animeDescription)
     const name = getValue(names, params.agentType, "MonCryptoMan") + ` #${params.nftId}`
 

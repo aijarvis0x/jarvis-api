@@ -1,11 +1,12 @@
 import { CronJob } from 'cron';
-import { MarketContract, MintNftContract, web3 } from '../monad/rcp-monad.js';
+import { MarketContract, MintItemNftContract, MintNftContract, web3 } from '../monad/rcp-monad.js';
 import { db } from '../lib/pg.js';
-import { MintNftEvent, TxStatus } from '../utils/monad-utils.js';
+import { MintItemNftEvent, MintNftEvent, TxStatus } from '../utils/monad-utils.js';
 import { EventLog } from 'web3';
 import dayjs from 'dayjs';
 import { confirmedMintBot, updateNftOwner } from '../services/bot.service.js';
 import { confirmItemCancelledMarket, confirmItemListedMarket, confirmItemSoldMarket, confirmItemUpdatePriceMarket } from '../services/market.service.js';
+import { confirmedMintItem } from '../services/item.service.js';
 
 const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => {
@@ -21,8 +22,9 @@ const processEventBlock = async (
 ): Promise<void> => {
   try {
     console.log('\tScan from ', blocks[0], ' to ', blocks[blocks.length - 1])
+    await _processItemNftEvents(blocks, currentBlockNumber);
     await _processNftEvents(blocks, currentBlockNumber);
-    await _processMarketEvents(blocks, currentBlockNumber)
+    await _processMarketEvents(blocks, currentBlockNumber);
   } catch (error: any) {
     console.log(error.error);
   }
@@ -61,6 +63,54 @@ const _processNftEvents = async (
           case "Transfer":
             await _transferNftEvent(event)
             console.log(`[_transferNftEvent] - done : ${event.transactionHash}`)
+            break;
+
+          default:
+            break;
+        }
+
+      } catch (error) {
+        console.log(error)
+      }
+    }
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const _processItemNftEvents = async (
+  blocks: BlockRange,
+  currentBlockNumber?: number
+): Promise<void> => {
+  try {
+
+
+    const pastEvents = await MintItemNftContract.getPastEvents('allEvents', {
+      fromBlock: blocks[0],
+      toBlock: blocks[1]
+    })
+    console.log(`_processNftEvents`, pastEvents.length)
+
+
+
+    if (pastEvents == null || pastEvents.length == 0) {
+      return
+    }
+
+    for (let i = 0; i < pastEvents.length; i++) {
+
+      try {
+        const event = pastEvents[i] as EventLog
+        switch (event.event) {
+          case "Minted":
+            await _mintItemEvent(event)
+            console.log(`[mintItemEvent] - done : ${event.transactionHash}`)
+            break;
+
+          case "Transfer":
+            await _transferItemNftEvent(event)
+            console.log(`[_transferItemNftEvent] - done : ${event.transactionHash}`)
             break;
 
           default:
@@ -242,6 +292,39 @@ const _transferNftEvent = async (event: EventLog) => {
   if(String(event?.returnValues?.to).toLowerCase() != String(process.env.MARKET_CONTRACT_ADDRESS).toLowerCase() && String(event?.returnValues?.from).toLowerCase() != String(process.env.MARKET_CONTRACT_ADDRESS).toLowerCase()) {
     await updateNftOwner(event)
   }
+}
+
+const _mintItemEvent = async (event: EventLog) => {
+  // if(Number(event?.returnValues?.tokenId) != 513) {
+  //   return
+  // }
+
+  console.log(event)
+
+  //check event exist
+  if (!(await isTxNotExist(event.transactionHash, event.logIndex))) {
+    return console.log(`[mintItemEvent] Tx ${event.transactionHash} existed`)
+  }
+
+  // confirm mint bot
+  await confirmedMintItem(String(event?.transactionHash), event.returnValues as MintItemNftEvent, event)
+
+}
+
+const _transferItemNftEvent = async (event: EventLog) => {
+  // if(Number(event?.returnValues?.tokenId) != 513) {
+  //   return
+  // }
+
+  console.log(event)
+  // check event exist
+  if (!(await isTxNotExist(event.transactionHash, event.logIndex))) {
+    return console.log(`[_transferItemNftEvent] Tx ${event.transactionHash} existed`)
+  }
+
+  // if(String(event?.returnValues?.to).toLowerCase() != String(process.env.MARKET_CONTRACT_ADDRESS).toLowerCase() && String(event?.returnValues?.from).toLowerCase() != String(process.env.MARKET_CONTRACT_ADDRESS).toLowerCase()) {
+  //   await updateNftOwner(event)
+  // }
 }
 
 let blockStart: number = Number(process.env.START_BLOCK) ?? 7096250;

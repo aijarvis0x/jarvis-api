@@ -33,6 +33,11 @@ export const itemTypeConfig: Record<number, ItemTypeConfig> = {
 };
 
 
+export function getItem(itemType: number) {
+    return itemTypeConfig[itemType]
+}
+
+
 export function getItemConfig() {
     return Object.values(itemTypeConfig)
 }

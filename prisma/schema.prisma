@@ -336,7 +336,7 @@ model Item {
   state               String?
   isPublished         Boolean?     @default(false) @map("is_published")
   isPromptPublished   Boolean?     @default(false) @map("is_prompt_published")
-  categoryIds         Json?       @map("category_ids")
+  categoryIds         Json?        @map("category_ids")
 
   lastestPrice        BigInt?     @map("lastest_price")
   highestPrice        BigInt?     @map("highest_price")

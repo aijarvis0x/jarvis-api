@@ -1,0 +1,1 @@
+export const getValue = (obj: any, key: number, defaultValue: any) => obj?.[key] ?? defaultValue;
