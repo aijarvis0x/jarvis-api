@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { nullable, z } from "zod"
 
 export const loginSchema = z.object({
   address: z
@@ -6,7 +6,7 @@ export const loginSchema = z.object({
     // .refine((v) => isValidSuiAddress(v), "Invalid sui address"),
   messageHash: z.string(),
   signature: z.string(),
-  userRefCode: z.number().optional()
+  userRefCode: z.number().optional().nullable()
 })
 
 export const discordCallbackSchema = z.object({

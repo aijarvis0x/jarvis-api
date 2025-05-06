@@ -12,21 +12,24 @@ export type User = {
 }
 
 async function addFriend(userId, userRefId) {
-    let checkUserFriend: any = await db.pool.query(`
+    let checkFriendOfUserRef: any = await db.pool.query(`
         SELECT * FROM friends WHERE user_id = $1
     `, [userRefId])
-
-    checkUserFriend = checkUserFriend.rows[0] ?? null
+    
+    checkFriendOfUserRef = checkFriendOfUserRef.rows[0] ?? null
     let friendIds: Array<any>
-    if (checkUserFriend) {
-        friendIds = checkUserFriend.friend_ids
-        friendIds.push(userId)
+    if (checkFriendOfUserRef) {
+        friendIds = checkFriendOfUserRef.friend_ids
 
-        await db.pool.query(`
-            UPDATE friends
-            SET friend_ids = $1
-            WHERE user_id = $2
-        `, [JSON.stringify(friendIds), userRefId])
+        if (!(friendIds.includes(Number(userId)) || friendIds.includes(String(userId)))) {
+            friendIds.push(userId)
+
+            await db.pool.query(`
+                UPDATE friends
+                SET friend_ids = $1
+                WHERE user_id = $2
+            `, [JSON.stringify(friendIds), userRefId])
+        }
     } else {
         friendIds = [userId]
 
@@ -41,20 +44,44 @@ async function addFriend(userId, userRefId) {
         `, [userRefId, JSON.stringify(friendIds)])
     }
 
-    await db.pool.query(`
-        INSERT INTO friends (
-            user_id,
-            friend_ids
-        ) VALUES (
-            $1,
-            $2
-        )
-    `, [userId, JSON.stringify([userRefId])])
+    let checkFriendOfUser: any = await db.pool.query(`
+        SELECT * FROM friends WHERE user_id = $1
+    `, [userId])
+
+    checkFriendOfUser = checkFriendOfUser.rows[0] ?? null
+    friendIds = []
+    if (checkFriendOfUser) {
+        friendIds = checkFriendOfUser.friend_ids
+
+        if (!(friendIds.includes(Number(userRefId)) || friendIds.includes(String(userRefId)))) {
+            friendIds.push(userRefId)
+
+            await db.pool.query(`
+                UPDATE friends
+                SET friend_ids = $1
+                WHERE user_id = $2
+            `, [JSON.stringify(friendIds), userId])
+        }
+
+    } else {
+        friendIds = [userRefId]
+
+        await db.pool.query(`
+            INSERT INTO friends (
+                user_id,
+                friend_ids
+            ) VALUES (
+                $1,
+                $2
+            )
+        `, [userId, JSON.stringify(friendIds)])
+    }
+
 }
 
 export async function login(
     address: string,
-    userRefId: number | undefined
+    userRefId: number | undefined | null
 ) {
     //check exist user
     let user = await findUserByAddress(address)
@@ -69,16 +96,16 @@ export async function login(
         )
 
         result = result.rows[0] ?? null
-
-        if (userRefId) {
-            await addFriend(result.id, userRefId)
-        }
     }
 
     //gen token
     let token = genAccessToken(address)
     if(!result) {
         result = await findUserByAddress(address)
+    }
+
+    if (userRefId && result) {
+        await addFriend(result.id, userRefId)
     }
     return {
         token,
