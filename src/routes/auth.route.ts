@@ -120,10 +120,7 @@ export default async (app: AppInstance) => {
                 }
                 if (userId) {
                     await discordCallback(code, userId);
-                    return {
-                        message: "OK",
-                        data: {},
-                    };
+                    return reply.redirect("https://app.aijarvis.xyz/profile");
                 } else {
                     throw new Error("Error when connect discord account")
                 }
@@ -177,10 +174,7 @@ export default async (app: AppInstance) => {
                 }
                 if (userId) {
                     await googleCallback(code, userId);
-                    return {
-                        message: "OK",
-                        data: {},
-                    };
+                    return reply.redirect("https://app.aijarvis.xyz/profile");
                 } else {
                     throw new Error("Error when connect google account")
                 }
@@ -237,10 +231,7 @@ export default async (app: AppInstance) => {
                 }
                 if (userId) {
                     await XCallback(code, userId);
-                    return {
-                        message: "OK",
-                        data: {},
-                    };
+                    return reply.redirect("https://app.aijarvis.xyz/profile");
                 } else {
                     throw new Error("Error when connect X account")
                 }
