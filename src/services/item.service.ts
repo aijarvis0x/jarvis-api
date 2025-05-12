@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import { createUser, findUserByAddress } from "./users.service.js";
 import { PoolClient } from "pg";
 import { getItem } from "../config/items.js";
+import { Wallet, ethers } from "ethers";
 
 export async function getMyItems(userId: bigint) {
     try {
@@ -38,7 +39,7 @@ export async function createItem(
     }
 ) {
     try {
-        const item = getItem(params.roundId)
+        const item = getItem(params.roundId);
         const insertQuery = `
             INSERT INTO items
             (
@@ -62,7 +63,7 @@ export async function createItem(
             params.ownerId,
             params.owner,
             params.blockNumber,
-            item.img
+            item.img,
         ];
 
         const result = await pool.query(insertQuery, values);
@@ -101,7 +102,7 @@ export const confirmedMintItem = async (
                         events: {
                             owner: event.owner,
                             tokenId: Number(event.tokenId),
-                            roundId: Number(event.roundId)
+                            roundId: Number(event.roundId),
                         },
                         logs: null,
                         confirmedAt: dayjs.utc().toDate(),
@@ -140,6 +141,97 @@ export const confirmedMintItem = async (
             }
         );
     } catch (error) {
+        throw error;
+    }
+};
+
+interface PresignInput {
+    userAddress: string;
+    roundId: number;
+    privateKey: string;
+}
+
+// Function to generate presigned signature for private minting round
+async function generatePresignSignature(input: PresignInput): Promise<string> {
+    try {
+        // Create a wallet instance from the private key
+        const wallet = new Wallet(input.privateKey);
+
+        // Create the same digest as in the contract
+        // keccak256(abi.encode("mint", msg.sender, roundId))
+        const abiCoder = new ethers.AbiCoder();
+        const encodedData = abiCoder.encode(
+            ["string", "address", "uint8"],
+            ["mint", input.userAddress, input.roundId]
+        );
+        const message = ethers.keccak256(encodedData);
+
+        // Convert to Ethereum signed message hash (matches ECDSA.toEthSignedMessageHash)
+        const ethMessage = ethers.toUtf8Bytes(
+            `\x19Ethereum Signed Message:\n32${message}`
+        );
+        const ethMessageHash = ethers.keccak256(ethMessage);
+
+        // Sign the message
+        const signature = await wallet.signMessage(
+            ethers.getBytes(ethMessageHash)
+        );
+
+        return signature;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+
+export const getItemSignature = async (userId, walletAddress, roundId) => {
+    try {
+        let query = `
+            SELECT
+                *
+            FROM mint_fragment_history
+            WHERE user_id = $1 AND round_id = $2
+        `;
+        let values = [userId, roundId];
+
+        let result = await db.pool.query(query, values);
+
+        let history = result.rows?.[0];
+
+        if (history) {
+            return history.signature;
+        }
+
+        const privateKey = process.env.MINT_ITEM_PRIVATE_KEY as string;
+
+        const signature = await generatePresignSignature({
+            userAddress: walletAddress,
+            roundId,
+            privateKey,
+        });
+
+        console.log(signature);
+        
+
+        let insertQuery = `
+            INSERT INTO mint_fragment_history
+            (
+                user_id, 
+                round_id,
+                signature
+            )
+            VALUES
+            ($1, $2, $3)
+            RETURNING id;
+        `;
+
+        values = [userId, roundId, signature];
+
+        result = await db.pool.query(insertQuery, values);
+
+        return signature;
+    } catch (error) {
+        console.log(error);
         throw error;
     }
 };

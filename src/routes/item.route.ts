@@ -37,7 +37,7 @@ import HttpClient from "../lib/axios.js";
 import jwt from "jsonwebtoken"; 
 import * as fs from "fs";
 import CryptoJS from 'crypto-js';
-import { getMyItems } from "../services/item.service.js";
+import { getItemSignature, getMyItems } from "../services/item.service.js";
 import { getItemConfig } from "../config/items.js";
 
 const privateKEY = fs.readFileSync("./src/keys/private.pem", "utf-8");
@@ -83,4 +83,30 @@ export default async (app: AppInstance) => {
         },
     });
 
+    app.get("/get-item-signature/:roundId", {
+        schema: {
+            tags: ["Item"],
+        },
+        onRequest: app.authenticate,
+        handler: async (request, reply) => {
+            try {
+                const { userId, address } = request;
+                const { roundId } = request.params as any
+
+                if (!(roundId >= 0 && roundId <= 4)) {
+                    throw new Error("roundId is invalid")
+                }
+
+                const signature = await getItemSignature(userId, address, roundId)
+                return {
+                    message: "OK",
+                    data: {
+                        signature
+                    },
+                };
+            } catch (error: any) {
+                return reply.code(500).send({ error: error.message });
+            }
+        },
+    });
 };
