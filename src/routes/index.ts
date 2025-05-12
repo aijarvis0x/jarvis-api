@@ -17,7 +17,7 @@ export default async (app: AppInstance) => {
   app.register(chatRoute, { prefix: "/api/chats" })
   app.register(explore, { prefix: "/api/explores" })
   app.register(category, { prefix: "/api/categories" })
-  app.register(metadata, { prefix: "/metadata/ai-agents" })
+  app.register(metadata, { prefix: "/metadata" })
   app.register(market, { prefix: "/api/markets" })
   app.register(item, { prefix: "/api/items" })
 }
