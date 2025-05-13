@@ -4,7 +4,11 @@ import { MintItemNftEvent, TxStatus } from "../utils/monad-utils.js";
 import { multiConnectionTransaction } from "../lib/db/transaction.js";
 import { createTransaction } from "./bot.service.js";
 import dayjs from "dayjs";
-import { createUser, findUserByAddress } from "./users.service.js";
+import {
+    createUser,
+    findUserByAddress,
+    getAccountSocial,
+} from "./users.service.js";
 import { PoolClient } from "pg";
 import { getItem } from "../config/items.js";
 import { Wallet, ethers } from "ethers";
@@ -202,6 +206,18 @@ export const getItemSignature = async (userId, walletAddress, roundId) => {
             return history.signature;
         }
 
+        const accountSocial = await getAccountSocial(userId);
+
+        if (
+            !(
+                accountSocial.is_connect_discord &&
+                accountSocial.is_connect_google &&
+                accountSocial.is_connect_x
+            )
+        ) {
+            return null;
+        }
+
         const privateKey = process.env.MINT_ITEM_PRIVATE_KEY as string;
 
         const signature = await generatePresignSignature({
@@ -209,9 +225,6 @@ export const getItemSignature = async (userId, walletAddress, roundId) => {
             roundId,
             privateKey,
         });
-
-        console.log(signature);
-        
 
         let insertQuery = `
             INSERT INTO mint_fragment_history
