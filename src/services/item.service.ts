@@ -156,7 +156,7 @@ interface PresignInput {
 }
 
 // Function to generate presigned signature for private minting round
-async function generatePresignSignature(input: PresignInput): Promise<string> {
+async function test(input: PresignInput): Promise<string> {
     try {
         // Create a wallet instance from the private key
         const wallet = new Wallet(input.privateKey);
@@ -186,6 +186,29 @@ async function generatePresignSignature(input: PresignInput): Promise<string> {
         console.log(error);
         throw error;
     }
+}
+
+async function generatePresignSignature(input: PresignInput) {
+    try {
+        const wallet = new ethers.Wallet(input.privateKey);
+
+        const abiCoder = new ethers.AbiCoder();
+        const digest = abiCoder.encode(
+            ["string", "address", "uint8"],
+            ["mint", input.userAddress, input.roundId]
+        );
+        // const signature = await wallet.signMessage(
+        //     ethers.arrayify(ethers.keccak256(digest))
+        // );
+
+        const signature = await wallet.signMessage(ethers.getBytes(ethers.keccak256(digest)))
+
+        return signature;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+    
 }
 
 export const getItemSignature = async (userId, walletAddress, roundId) => {
