@@ -13,6 +13,41 @@ import { PoolClient } from "pg";
 import { getItem } from "../config/items.js";
 import { Wallet, ethers } from "ethers";
 
+import * as fs from 'fs';
+const rawData = fs.readFileSync('src/scripts/data/round1/data.json', 'utf-8');
+
+
+const checksumAddress = (address: string): string => {
+    return ethers.getAddress(address); // Chuẩn hóa địa chỉ theo checksum
+};
+
+const isAddress = (address: string): boolean => {
+    return ethers.isAddress(address);
+};
+
+const checkDup = (data: string[]): string[] => {
+    const dataCheck: Record<string, boolean> = {};
+    const addresses: string[] = [];
+    let count = 0;
+
+    for (let i = 0; i < data.length; i++) {
+        const addr = data[i];
+        if (isAddress(addr)) {
+            const checksum = checksumAddress(addr);
+            if (!dataCheck[checksum]) {
+                count++;
+                addresses.push(checksum);
+                dataCheck[checksum] = true;
+            }
+        }
+    }
+
+    console.log(count);
+    return addresses;
+};
+
+
+
 export async function getMyItems(userId: bigint) {
     try {
         let query = `
@@ -115,7 +150,7 @@ export const confirmedMintItem = async (
                     if (!log) {
                         throw new Error(
                             "transaction existed. Tx: " +
-                                String(eventLog?.transactionHash)
+                            String(eventLog?.transactionHash)
                         );
                     }
 
@@ -211,6 +246,7 @@ async function generatePresignSignature(input: PresignInput) {
 
 }
 
+
 export const getItemSignature = async (userId, walletAddress, roundId) => {
     try {
         let query = `
@@ -229,13 +265,12 @@ export const getItemSignature = async (userId, walletAddress, roundId) => {
             return history.signature;
         }
 
-        const round1Wls: string[] = [
-            "0x92FE67b51003d374C1698cBea996Fd3072186474"
-        ]
+        const addressArray: string[] = checkDup(JSON.parse(rawData));
+        const round1Wls = addressArray
 
-        if(roundId != 1) return null
+        if (roundId != 1) return null
 
-        if(!round1Wls.includes(walletAddress)) {
+        if (!round1Wls.includes(walletAddress)) {
             return null
         }
 
