@@ -47,11 +47,11 @@ export async function createItem(
         const insertQuery = `
             INSERT INTO items
             (
-                category_ids, 
-                name, 
-                nft_id, 
-                user_id, 
-                owner, 
+                category_ids,
+                name,
+                nft_id,
+                user_id,
+                owner,
                 lastest_act,
                 img
             )
@@ -208,7 +208,7 @@ async function generatePresignSignature(input: PresignInput) {
         console.log(error);
         throw error;
     }
-    
+
 }
 
 export const getItemSignature = async (userId, walletAddress, roundId) => {
@@ -229,17 +229,28 @@ export const getItemSignature = async (userId, walletAddress, roundId) => {
             return history.signature;
         }
 
-        const accountSocial = await getAccountSocial(userId);
+        const round1Wls: string[] = [
+            "0x92FE67b51003d374C1698cBea996Fd3072186474"
+        ]
 
-        if (
-            !(
-                accountSocial.is_connect_discord &&
-                accountSocial.is_connect_google &&
-                accountSocial.is_connect_x
-            )
-        ) {
-            return null;
+        if(roundId != 1) return null
+
+        if(!round1Wls.includes(walletAddress)) {
+            return null
         }
+
+
+        // const accountSocial = await getAccountSocial(userId);
+
+        // if (
+        //     !(
+        //         accountSocial.is_connect_discord &&
+        //         accountSocial.is_connect_google &&
+        //         accountSocial.is_connect_x
+        //     )
+        // ) {
+        //     return null;
+        // }
 
         const privateKey = process.env.MINT_ITEM_PRIVATE_KEY as string;
 
@@ -252,7 +263,7 @@ export const getItemSignature = async (userId, walletAddress, roundId) => {
         let insertQuery = `
             INSERT INTO mint_fragment_history
             (
-                user_id, 
+                user_id,
                 round_id,
                 signature
             )
