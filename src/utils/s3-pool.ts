@@ -26,9 +26,9 @@ const enum COLLECTION {
 }
 
 export const ASSET_COLLECTION_PATH: Record<COLLECTION, string> = {
-  [COLLECTION.anime]: "assets/anime/ss5/",
-  [COLLECTION.nurse]: 'assets/nurse/ss5/',
-  [COLLECTION.cryptoman]: 'assets/cryptoman/ss5/'
+  [COLLECTION.anime]: "assets/anime/ss6/",
+  [COLLECTION.nurse]: 'assets/nurse/ss6/',
+  [COLLECTION.cryptoman]: 'assets/cryptoman/ss6/'
 }
 
 
